@@ -66,8 +66,8 @@
 				msg,
 				cmdArr = cmdStr.split(' ');
 
-				cmd = cmdArr[0].toLowerCase();
-				msg = cmdArr.slice(1).toString().replace(/,/g, ' ');
+				cmd = cmdArr[0];
+				msg = cmdArr.slice(1).join(' ');
 	
 				for (i; i < keys.length; i += 1) {
 					if (keys[i] === cmd) {
@@ -82,10 +82,10 @@
 				return fn(cmd + ' ' + msg);	
 			},
 
-			frmH = on(dom.byId('console'), 'submit', function (e) {				
+			frmH = on(dom.byId('console'), 'submit', function (e) {
 				var node = dom.byId('cmd'),
 				messageNodes = [],
-				msg = string.trim(node.value.toLowerCase());
+				msg = string.trim(node.value);
 			
 				e.preventDefault();
 				
@@ -138,7 +138,7 @@
 				win.scrollIntoView(query('#bottom')[0]);
 				
 				if (r.res) {
-					changeMudState(r.res);	
+					changeMudState(r.res);
 				}
 			});	
 		});

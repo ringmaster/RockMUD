@@ -21,8 +21,6 @@ server = http.createServer(function (req, res) {
 				.replace(/\{servername\}/g, cfg.name)
 				.replace(/\{version\}/g, cfg.version)
 				.replace(/\{website\}/g, cfg.website);
-			console.log(data);
-			console.log('zzzz{servername}zzzzz'.replace('{servername}', cfg.name));
 			res.write(data);
 			res.end();
 		});
@@ -81,12 +79,13 @@ server.listen(cfg.port);
 io.on('connection', function (s) {
 	s.on('login', function (r) {	
 		var parseCmd = function(r, s) {
-			var cmdArr = r.msg.split(' ');	
-			r.cmd = cmdArr[0].toLowerCase();
+			var cmdArr = r.msg.split(' ');
+			r.cmd = cmdArr[0];
 			r.msg = cmdArr.slice(1).join(' ');
-		
+
 			if (/[`~@#$%^&*()-+={}[]|]+$/g.test(r.msg) === false) {
 				if (r.cmd !== '') {
+					console.log(r);
 					if (r.cmd in Cmds) {
 						return Cmds[r.cmd](r, s);
 					} else if (r.cmd in Skills) {
@@ -107,9 +106,9 @@ io.on('connection', function (s) {
 		if (r.msg !== '') { // not checking slashes
 			return Character.login(r, s, function (name, s, fnd) {
 				if (fnd) {
-					s.join('mud'); // mud is one of two socket.io rooms, 'creation' the other				
-					Character.load(name, s, function (s) {						
-						Character.getPassword(s, function(s) {	
+					s.join('mud'); // mud is one of two socket.io rooms, 'creation' the other
+					Character.load(name, s, function (s) {
+						Character.getPassword(s, function(s) {
 							s.on('cmd', function (r) { 
 								parseCmd(r, s);
 							});
@@ -119,7 +118,7 @@ io.on('connection', function (s) {
 					s.join('creation'); // Character creation is its own socket.io room, 'mud' the other
 					s.player = {name:name};					
 					
-					Character.newCharacter(r, s, function(s) {			
+					Character.newCharacter(r, s, function(s) {
 						s.on('cmd', function (r) { 
 							parseCmd(r, s);
 						});
@@ -133,7 +132,7 @@ io.on('connection', function (s) {
 
 	// Quitting
 	s.on('quit', function () {
-		Character.save(s, function() {		
+		Character.save(s, function() {
 			s.emit('msg', {
 				msg: 'Add a little to a little and there will be a big pile.',
 				emit: 'disconnect',
@@ -146,7 +145,7 @@ io.on('connection', function (s) {
 	});
 
 	// DC
-    s.on('disconnect', function () {
+	s.on('disconnect', function () {
 		var i = 0;
 		if (s.player !== undefined) {
 			for (i; i < module.exports.players.length; i += 1) {	
