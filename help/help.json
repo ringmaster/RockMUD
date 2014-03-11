@@ -1,9 +1,9 @@
 {
 	"name" : "Help",
-	"related" : [],
+	"related" : ["Channels", "Races", "Movement"],
 	"type" : "Help",
 	"levels" : "All",
 	"restrict": 0,
-	"description" : "See HELP CHANNELS for a comprehensive overview of communication commands.",
+	"description" : "See the related topics below for a comprehensive overview of commands.",
 	"Alias" : ""
 }

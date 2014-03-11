@@ -1,9 +1,9 @@
 {
 	"name" : "Movement",
-	"related" : ["Channels", "Newbie"],
+	"related" : ["Area", "Room"],
 	"type" : "Help",
 	"levels" : "All",
 	"restrict": 0,
-	"description" : "Send a message to everyone on the mud. See HELP CHANNELS for a comprehensive overview of communication commands.",
-	"Alias" : "ooc"
+	"description" : "Movement commands allow you to move from room to room.  Movement is typically performed by using the \"move\" command, followed by the direction in which you wish to move.  Some common directions, such as \"north\" and \"up\", may be used without the \"move\" command.  All move commands must specify a valid direction to execute.",
+	"Alias" : ""
 }
