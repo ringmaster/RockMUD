@@ -58,12 +58,12 @@ Room.prototype.getRoom = function(s, fn) {
 								}
 								
 								if (playersInRoom.length > 0 || monsters.length > 0) {
-									roomStr += '<li>Here:' + playersInRoom.toString().replace(/,/g, '. ') + 
-									' ' + monsters.toString().replace(/,/g, '. ') + '</li>';
+									roomStr += '<li>Here:' + playersInRoom.join(', ') +
+									' ' + monsters.join(', ') + '</li>';
 								}
 								
 								if (items.length > 0) {
-									roomStr += '<li>Items: ' + items.toString().replace(/,/g, ', ') + 
+									roomStr += '<li>Items: ' + items.join(', ') +
 									'</li>';
 								}							
 							
