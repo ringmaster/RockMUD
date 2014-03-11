@@ -3,13 +3,13 @@ exports.server = {
 		ip: '127.0.0.1',
 		port: 8000,
 		name: 'RockMUD',
-		version: '0.1.7',
-		website: 'https://github.com/MoreOutput/RockMUD'
+		version: '0.1.7-ringmaster',
+		website: 'https://github.com/ringmaster/RockMUD'
 	},
 	admins: [{
-		name: 'Rocky',
-		position: 'Code Guy',
-		contact: 'moreoutput@gmail.com'		
+		name: 'ringmaster',
+		position: 'Server Admin',
+		contact: '@ringmaster'
 	}],
 	races: [{
 		name:'Human',
