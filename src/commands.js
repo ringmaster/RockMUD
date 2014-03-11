@@ -557,7 +557,7 @@ Cmd.prototype.help = function(r, s) {
 	}
 }
 
-Cmd.prototype.xyzzy = function(s) {
+Cmd.prototype.xyzzy = function(r, s) {
 	Room.msgToRoom({
 		msg: s.player.name + 	' tries to xyzzy but nothing happens.', 
 		roomid: s.player.roomid,
