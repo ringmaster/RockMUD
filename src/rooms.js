@@ -316,13 +316,17 @@ Room.prototype.addCorpse = function(s, monster, fn) {
 }
 
 Room.prototype.removeItemFromRoom = function(roomQuery, fn) {
+	var found = false;
 	this.getRoomObject(roomQuery, function(roomObj) {
 		roomObj.items = roomObj.items.filter(function(item, i) {
-			if (item.id !== roomQuery.item.id) {
-				return fn(true);
-			}			
-		});	
+			if (item.id === roomQuery.item.id) {
+				found = true;
+				return false;
+			}
+			return true;
+		});
 	});
+	return fn(found);
 }
 
 Room.prototype.addItem = function(itemOpt, fn) {
