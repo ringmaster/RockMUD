@@ -533,28 +533,28 @@ Cmd.prototype.help = function(r, s) {
 	// if we don't list a specific help file we return help.json
 	var helpTxt = '';
 
-	if (r.msg !== '') {
-		fs.readFile('./help/' + r.msg + '.json', function (err, data) {
-			if (!err) {
-				data = JSON.parse(data);
-
-				helpTxt = '<h2>Help: ' + data.name + '</h2> ' + data.description + 
-				'<p class="small">Related: '+ data.related.toString() + '</p>';
-
-				s.emit('msg', {msg: helpTxt, styleClass: 'cmd-help' });
-
-				return Character.prompt(s);
-			} else {
-				s.emit('msg', {msg: 'No help file found.', styleClass: 'error' });	
-
-				return Character.prompt(s);
-			}
-		});	
-	} else {
-		s.emit('msg', {msg: 'Help you with what exactly?', styleClass: 'error' });
-
-		return Character.prompt(s);
+	if (r.msg == '') {
+		r.msg = 'help'
 	}
+	fs.readFile('./help/' + r.msg + '.json', function (err, data) {
+		if (!err) {
+			data = JSON.parse(data);
+
+			helpTxt = '<header><h2>Help: ' + data.name + '</h2></header><p>' + data.description + '</p>';
+			if(data.related.length) {
+				helpTxt += '<footer class="help-related">Related: '
+				for(var i = 0; i < data.related.length; i++) {
+					helpTxt += '<a class="clickcmd" href="#help ' + data.related[i] + '">' + data.related[i] + '</a>';
+				}
+				helpTxt += '</footer>';
+			}
+
+			s.emit('msg', {msg: helpTxt, styleClass: 'cmd-help' });
+		} else {
+			s.emit('msg', {msg: 'No help file found.', styleClass: 'error' });
+		}
+		return Character.prompt(s);
+	});
 }
 
 Cmd.prototype.xyzzy = function(r, s) {

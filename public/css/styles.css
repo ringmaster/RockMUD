@@ -218,6 +218,22 @@ color: yellow;
 font-weight: bold;
 }
 
+.cmd-help {
+margin: 5px;
+padding: 10px;
+border: 1px solid #666;
+}
+.help-related a {
+margin-right: 10px;
+}
+.cmd-help header {
+margin-bottom: 5px;
+}
+.cmd-help footer {
+margin-top: 5px;
+font-size: small;
+}
+
 .enter-name {
 clear: both;
 display: block;
