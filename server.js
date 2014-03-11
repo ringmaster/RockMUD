@@ -16,7 +16,14 @@ server = http.createServer(function (req, res) {
 			}
 
 			res.writeHead(200, {'Content-Type': 'text/html'});
-        	res.write(data);
+			data = data
+				.toString()
+				.replace(/\{servername\}/g, cfg.name)
+				.replace(/\{version\}/g, cfg.version)
+				.replace(/\{website\}/g, cfg.website);
+			console.log(data);
+			console.log('zzzz{servername}zzzzz'.replace('{servername}', cfg.name));
+			res.write(data);
 			res.end();
 		});
 	} else if (req.url === '/styles.css') {
