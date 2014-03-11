@@ -124,18 +124,18 @@
 			});
 
 			query('body').on('click', function(evt) {
-				var node = query('#cmd')[0];
+				var node = query('#bottom')[0];
 				
 				node.focus();
 				win.scrollIntoView(node);
 			});
 
-			query('#cmd')[0].focus();
+			query('#bottom')[0].focus();
 
 			ws.on('msg', function(r) {
 				display(r);
 
-				win.scrollIntoView(query('#cmd')[0]);
+				win.scrollIntoView(query('#bottom')[0]);
 				
 				if (r.res) {
 					changeMudState(r.res);	
