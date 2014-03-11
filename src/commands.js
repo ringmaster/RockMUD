@@ -594,19 +594,54 @@ Cmd.prototype.reboot = function(r, s) {
 	if (s.player.role === 'admin') {
 
 	} else {
-		s.emit('msg', {msg: 'You wish!', styleClass: 'error' });	
+		s.emit('msg', {msg: 'You wish!', styleClass: 'error' });
 		return Character.prompt(s);
 	}
 }
 
 // Fully heal everyone on the MUD
 Cmd.prototype.restore = function(r, s) {
+	var str = '',
+		player,
+		i = 0,
+		healed = 0;
+
 	if (s.player.role === 'admin') {
+		if (players.length > 0) {
+			for (i; i < players.length; i += 1) {
+				player = io.sockets.socket(players[i].sid); // A visible player in players[]
+
+				if(player.player.chp != player.player.hp) {
+					healed++;
+					player.player.chp = player.player.hp;
+					player.emit('msg', {
+						msg: 'You have been fully healed by an admin.',
+						styleClass: 'foe-miss'
+					});
+				}
+			}
+
+			if(healed > 0) {
+				s.emit('msg', {
+					msg: 'You have healed ' + healed + ' players.'
+				});
+			}
+			else {
+				s.emit('msg', {
+					msg: 'No players required healing.'
+				});
+			}
+		}
+		else {
+			s.emit('msg', {
+				msg: 'No players were healed.'
+			});
+		}
 
 	} else {
-		s.emit('msg', {msg: 'You do not possess that kind of power.', styleClass: 'error' });	
-		return Character.prompt(s);
+		s.emit('msg', {msg: 'You do not possess that kind of power.', styleClass: 'error' });
 	}
+	return Character.prompt(s);
 }
 
 module.exports.cmd = new Cmd();
