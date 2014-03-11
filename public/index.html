@@ -6,7 +6,7 @@
 		<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" /> 
 		<meta name="HandheldFriendly" content="true" />
 		<link rel="stylesheet" src="//normalize-css.googlecode.com/svn/trunk/normalize.css" />
-		<link href="styles.css" rel="stylesheet" media="all" />
+		<link href="/css/styles.css" rel="stylesheet" media="all" />
 	</head>
 	<body>
 		<div id="mudwrapper">
@@ -25,10 +25,8 @@
 				</form>
 			</div>
 			<div id="bottom">&nbsp;</div>
-		</div>		
+		</div>
 		
-		<script src="/socket.io/socket.io.js"></script>
-		<script src="http://ajax.googleapis.com/ajax/libs/dojo/1.9.0/dojo/dojo.js"></script>
-	    <script src="client.js"></script>
+	    <script data-dojo-config="deps:['/js/client.js'],baseUrl:'/js/'" src="//ajax.googleapis.com/ajax/libs/dojo/1.9.0/dojo/dojo.js"></script>
 	</body>
 </html>

@@ -8,43 +8,51 @@
 var http = require('http'),
 fs = require('fs'),
 cfg = require('./config').server.game,
+url = require('url'),
+path = require('path'),
 server = http.createServer(function (req, res) {
-	if (req.url === '/' || req.url === '/index.html') {
-		fs.readFile('./public/index.html', function (err, data) {
-        	if (err) {
-				throw err;
-			}
+	var uri, filename;
+	var mimeTypes = {'html': 'text/html', 'png': 'image/png',
+		'js': 'text/javascript', 'css': 'text/css'};
 
-			res.writeHead(200, {'Content-Type': 'text/html'});
-			data = data
-				.toString()
-				.replace(/\{servername\}/g, cfg.name)
-				.replace(/\{version\}/g, cfg.version)
-				.replace(/\{website\}/g, cfg.website);
-			res.write(data);
-			res.end();
-		});
-	} else if (req.url === '/styles.css') {
-		fs.readFile('./public/css/styles.css', function (err, data) {
-			if (err) {
-				throw err;
-            }
-
-          	res.writeHead(200, {'Content-Type': 'text/css'});
-           	res.write(data);
-           	res.end();
-        });
-    } else if (req.url === '/client.js') {
-		fs.readFile('./public/js/client.js', function (err, data) {
-			if (err) {
-				throw err;
-            }
-
-            res.writeHead(200, {'Content-Type': 'text/javascript'});
-            res.write(data);
-            res.end();
-        });
+	uri = url.parse(req.url).pathname;
+	uri = uri.replace(/\.+/g, '.').replace(/\/+/g, '/').replace(/[^a-z0-9\.\/_]+/g, '');
+	switch(uri) {
+		case '/':
+		case '':
+			uri = '/index.html';
+			break;
 	}
+	filename = path.join(process.cwd(), 'public', uri);
+	path.exists(filename, function(exists){
+		var extension, mimeType, fileStream;
+		if (exists) {
+			extension = path.extname(filename).substr(1);
+			mimeType = mimeTypes[extension] || 'application/octet-stream';
+			res.writeHead(200, {'Content-Type': mimeType});
+			console.log('serving ' + filename + ' as ' + mimeType);
+
+			fs.readFile(filename, function (err, data) {
+				if (err) {
+					throw err;
+				}
+
+				data = data
+					.toString()
+					.replace(/\{servername\}/g, cfg.name)
+					.replace(/\{version\}/g, cfg.version)
+					.replace(/\{website\}/g, cfg.website);
+				res.write(data);
+				res.end();
+			});
+
+		} else {
+			console.log('not exists: ' + filename);
+			res.writeHead(404, {'Content-Type': 'text/plain'});
+			res.write('404 Not Found\n');
+			res.end();
+		}
+	});
 }),
 io = require('socket.io').listen(server);
 
