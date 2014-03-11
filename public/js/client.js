@@ -129,24 +129,23 @@
 					
 				node.value = '';
 				node.focus();
-				
-				win.scrollIntoView(node);
+
+				win.scrollIntoView(query('#bottom')[0]);
 			});
 
 			query('body').on('click', function(evt) {
-				var node = query('#bottom')[0];
-				
-				node.focus();
-				win.scrollIntoView(node);
+				query('#cmd')[0].focus();
+				win.scrollIntoView(query('#bottom')[0]);
 			});
 
-			query('#bottom')[0].focus();
+			query('#cmd')[0].focus();
 
 			ws.on('msg', function(r) {
 				display(r);
 
 				win.scrollIntoView(query('#bottom')[0]);
-				
+				query('#cmd')[0].focus();
+
 				if (r.res) {
 					changeMudState(r.res);
 				}
