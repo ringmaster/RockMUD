@@ -470,7 +470,7 @@ Character.prototype.raceSelection = function(r, s, fn) {
 			if (!err) {
 				data = JSON.parse(data);
 
-				helpTxt = '<h2>Race Profile: ' + data.name + '</h2> ' + data.description + 
+				var helpTxt = '<h2>Race Profile: ' + data.name + '</h2> ' + data.description +
 				'<h3>Benefits:</h3><p class="small">Related: '+ data.related.toString() + '</p>';
 
 				s.emit('msg', {msg: helpTxt, styleClass: 'cmd-help' });
@@ -736,10 +736,16 @@ Character.prototype.updatePlayer = function(s, fn) {
 }
 
 Character.prototype.prompt = function(s) {
-	return s.emit('msg', {msg: s.player.chp + '/'  + s.player.hp + 'hps ' +
-		s.player.cmana + '/'  + s.player.mana + 'mana ' +  
-		s.player.cmv + '/'  + s.player.mv +'mv room:' +
-		s.player.roomid + ' wait: ' + s.player.wait + '> ', styleClass: 'cprompt'});
+	return s.emit('prompt', {
+		chp: s.player.chp,
+		hp: s.player.hp,
+		cmana: s.player.cmana,
+		mana: s.player.mana,
+		cmv: s.player.cmv,
+		mv: s.player.mv,
+		room: s.player.roomid,
+		wait: s.player.wait
+	});
 }
 
 Character.prototype.level = function(s, fn) {

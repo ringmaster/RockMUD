@@ -33,10 +33,14 @@
 			},
 			movement = ['north', 'east', 'south', 'west'],
 			display = function(r) {
+				var msg = r.msg;
+				if (r.emit == 'password') {
+					msg = msg.replace(/./g, '&middot;');
+				}
 				if (r.element === undefined) {
-					terminal.innerHTML += '<div class="' + r.styleClass + '">' + r.msg + '</div>';
+					terminal.innerHTML += '<div class="' + r.styleClass + '">' + msg + '</div>';
 				} else {
-					terminal.innerHTML += '<' + r.element + ' class="' + r.styleClass + '">' + r.msg + '</' + r.element + '>';
+					terminal.innerHTML += '<' + r.element + ' class="' + r.styleClass + '">' + msg + '</' + r.element + '>';
 				}
 
 				return parseCmd(r);
@@ -51,6 +55,12 @@
 
 			changeMudState = function(state) {
 				domAttr.set(dom.byId('cmd'), 'mud-state', state);
+				if(state == 'enterPassword') {
+					domAttr.set(dom.byId('cmd'), 'type', 'password');
+				}
+				else {
+					domAttr.set(dom.byId('cmd'), 'type', 'text');
+				}
 			},		
 			checkMovement = function(cmdStr, fn) {
 				if (movement.toString().indexOf(cmdStr) !== -1) {
@@ -140,6 +150,26 @@
 				if (r.res) {
 					changeMudState(r.res);
 				}
-			});	
+			});
+
+			ws.on('prompt', function(r) {
+				// @todo Make this into a client-side template for easier editing
+				var cprompt = '<div class="cprompt">';
+				cprompt += '<span class="hp">HP: <span class="chp">' + r.chp + '</span>';
+				cprompt += '<span class="thp">/' + r.hp + '</span></span>  ';
+				cprompt += '<span class="mana">Mana: <span class="cmana">' + r.cmana + '</span>';
+				cprompt += '<span class="tmana">/' + r.mana + '</span></span>  ';
+				cprompt += '<span class="mv">Moves: <span class="cmv">' + r.cmv + '</span>';
+				cprompt += '<span class="tmv">/' + r.mv + '</span></span>  ';
+				cprompt += '<span class="room">Room: ' + r.room + '</span>  ';
+				cprompt += '<span class="wait">Wait: ' + r.wait + '</span>  ';
+				cprompt += '&gt; </div>';
+				terminal.innerHTML += cprompt;
+				win.scrollIntoView(query('#bottom')[0]);
+
+				if (r.res) {
+					changeMudState(r.res);
+				}
+			});
 		});
 	});

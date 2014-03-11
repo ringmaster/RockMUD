@@ -141,7 +141,10 @@ float: left;
 }
 
 .motd {
-color: red;
+color: #999;
+border: 1px solid #666;
+padding: 10px;
+margin: 5px;
 }
 
 .alert {
@@ -207,6 +210,9 @@ display: block;
 width: 95%;
 color: yellow;
 }
+.cmd:before {
+    content: '> ';
+}
 
 .cmd-wear {
 font-weight: bold;
@@ -236,6 +242,8 @@ margin: 0;
 .cprompt {
 font-weight: bold;
 color: #fff;
+border-bottom: 1px solid #333;
+padding: 0px 0px 5px;
 }
 
 .error {
