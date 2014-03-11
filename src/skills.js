@@ -15,7 +15,7 @@ Skill = function() {
 * Melee Skills
 */
 Skill.prototype.bash = function(r, s) { 
-	if (s.player.position === 'fighting' && s.player.class = 'fighter') {
+	if (s.player.position === 'fighting' && s.player.class == 'fighter') {
 		s.emit('msg', {msg: 'BASH!', styleClass: 'skill bash'});
 	}
 }
