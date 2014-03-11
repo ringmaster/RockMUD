@@ -531,12 +531,13 @@ Cmd.prototype.score = function(r, s) {
 
 Cmd.prototype.help = function(r, s) {
 	// if we don't list a specific help file we return help.json
-	var helpTxt = '';
+	var helpTxt = '',
+		helpfile = 'help';
 
-	if (r.msg == '') {
-		r.msg = 'help'
+	if (r.msg != '') {
+		helpfile = r.msg.toLowerCase().replace(/\s/g, '_').replace('.', '_');
 	}
-	fs.readFile('./help/' + r.msg + '.json', function (err, data) {
+	fs.readFile('./help/' + helpfile + '.json', function (err, data) {
 		if (!err) {
 			data = JSON.parse(data);
 
@@ -544,7 +545,7 @@ Cmd.prototype.help = function(r, s) {
 			if(data.related.length) {
 				helpTxt += '<footer class="help-related">Related: '
 				for(var i = 0; i < data.related.length; i++) {
-					helpTxt += '<a class="clickcmd" href="#help ' + data.related[i] + '">' + data.related[i] + '</a>';
+					helpTxt += '<a class="clickcmd" href="help ' + data.related[i] + '">' + data.related[i] + '</a>';
 				}
 				helpTxt += '</footer>';
 			}
