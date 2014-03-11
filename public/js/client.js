@@ -2,7 +2,7 @@
  Client Side JS for RockMUD
  Rocky Bevins, moreoutput@gmail.com 2013
 */
- require(['dojo/dom', 'dojo/string', 'dojo/query', 'dojo/dom-attr', 'dojo/on', 'dojo/_base/event', 'dojo/window', 'dojo/ready', 'dojo/NodeList-dom'], 
+ require(['dojo/dom', 'dojo/string', 'dojo/query', 'dojo/dom-attr', 'dojo/on', 'dojo/_base/event', 'dojo/window', 'dojo/ready', 'dojo/NodeList-dom'],
 	function (dom, string, query, domAttr, on, event, win, ready) {
 		ready(function () {
 			'use strict';
@@ -48,7 +48,7 @@
 			
 			parseCmd = function(r) {
 				if (r.msg !== undefined) {
-					r.msg = string.trim(r.msg.replace(/ /g, ' '));
+					r.msg = string.trim(r.msg);
 					ws.emit(r.emit, r);
 				}
 			},
@@ -92,41 +92,49 @@
 				return fn(cmd + ' ' + msg);	
 			},
 
-			frmH = on(dom.byId('console'), 'submit', function (e) {
-				var node = dom.byId('cmd'),
-				messageNodes = [],
-				msg = string.trim(node.value);
-			
-				e.preventDefault();
-				
+			displayCmd = function(msg) {
+				var node = dom.byId('cmd');
+
 				display({
 					msg : checkAlias(msg, function(cmd) {
-						 return checkMovement(cmd, function(wasMov, cmd) {
+						return checkMovement(cmd, function(wasMov, cmd) {
 							return cmd;
 						});
 					}),
 					emit : (function () {
 						var res = domAttr.get(node, 'mud-state');
 
-						if (res === 'login') {
-							return 'login';
-						} else if (msg === 'quit' || msg === 'disconnect') {
-							return 'quit';
-						} else if (res === 'selectRace') {
-							return 'raceSelection';
-						} else if (res === 'selectClass') {
-							return 'classSelection';
-						} else if (res === 'createPassword') {
-							return 'setPassword';
-						} else if (res === 'enterPassword') {
-							return 'password';
-						} else {
-							return 'cmd';
+						switch(res) {
+							case 'login':
+								return 'login';
+							case 'quit':
+							case 'disconnect':
+								return 'quit';
+							case 'selectRace':
+								return 'raceSelection';
+							case 'selectClass':
+								return 'classSelection';
+							case 'createPassword':
+								return 'setPassword';
+							case 'enterPassword':
+								return 'password';
+							default:
+								return 'cmd';
 						}
 					}()),
 					styleClass: 'cmd'
 				});
-					
+
+			},
+
+			frmH = on(dom.byId('console'), 'submit', function (e) {
+				var node = dom.byId('cmd'),
+				msg = string.trim(node.value);
+			
+				e.preventDefault();
+
+				displayCmd(msg);
+
 				node.value = '';
 				node.focus();
 
@@ -136,6 +144,11 @@
 			query('body').on('click', function(evt) {
 				query('#cmd')[0].focus();
 				win.scrollIntoView(query('#bottom')[0]);
+			});
+
+			on(window.document, '.clickcmd:click', function(evt){
+				displayCmd(dojo.attr(this, 'href'));
+				evt.preventDefault();
 			});
 
 			query('#cmd')[0].focus();
