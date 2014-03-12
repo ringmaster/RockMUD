@@ -219,8 +219,13 @@ Room.prototype.getMonsters = function(room, optObj, fn) {
 	}
 }
 
-// does a string match an exit in the room
-Room.prototype.checkExit = function(r, s, fn) { 
+/**
+ * Check if a named exit matches any exit in the current room, return it
+ * @param socket s
+ * @param string direction The direction to check
+ * @param function fn (boolean found, integer roomId) Callback for result
+ */
+Room.prototype.checkExit = function(s, direction, fn) {
 	var room = this;
 	
 	room.getRoomObject({area: s.player.area, id: s.player.roomid}, function(roomObj) {
@@ -228,37 +233,37 @@ Room.prototype.checkExit = function(r, s, fn) {
 
 		if (roomObj.exits.length > 0) {
 			for (i; i < roomObj.exits.length; i += 1) {
-				if (r.cmd === roomObj.exits[i].cmd) {
+				if (direction === roomObj.exits[i].cmd) {
 					return fn(true, roomObj.exits[i].vnum);
 				}
 			}
-			return fn(false);
-		} else {
-			return fn(false);
 		}
-	});		
+		return fn(false);
+	});
 }
 
-// does a string match any monsters in the room
-Room.prototype.checkMonster = function(r, s, fn) { 
+/**
+ * Match a name to a monster
+ * @param s
+ * @param name
+ * @param fn
+ */
+Room.prototype.checkMonster = function(s, name, fn) {
 	var room = this;
 
 	room.getRoomObject({area: s.player.area, id: s.player.roomid}, function(roomObj) {
-		var msgPatt = new RegExp('^' + r.msg),
+		var msgPatt = new RegExp('^' + name, 'i'),
 		i = 0;
 		
 		if (roomObj.monsters.length > 0) {
 			for (i; i < roomObj.monsters.length; i += 1) {
-				if (msgPatt.test(roomObj.monsters[i].name.toLowerCase())) {
+				if (msgPatt.test(roomObj.monsters[i].name)) {
 					return fn(true, roomObj.monsters[i]);
 				}
 			}
-			
-			return fn(false);
-		} else {
-			return fn(false);
 		}
-	});	
+		return fn(false);
+	});
 }
 
 
@@ -274,26 +279,25 @@ Room.prototype.removeMonster = function(roomQuery, monster, fn) {
 }
 
 // does a string match an item in the room
-Room.prototype.checkItem = function(r, s, fn) {
+Room.prototype.checkItem = function(s, name, fn) {
 	var room = this;
 	
 	room.getRoomObject({area: s.player.area, id: s.player.roomid}, function(roomObj) {
 		if (roomObj.items.length > 0) {
-			room.getItems(roomObj, {}, function(items) {
-				var msgPatt = new RegExp('^' + r.msg),
+			return room.getItems(roomObj, {}, function(items) {
+				var msgPatt = new RegExp('^' + name),
 				i = 0;
 
 				for (i; i < items.length; i += 1) {
-					if (msgPatt.test(items[i].name.toLowerCase())) {
+					if (msgPatt.test(items[i].name)) {
 						return fn(true, items[i]);
 					}
 				}
 				return fn(false);
 			});
-		} else {
-			return fn(false);
 		}
-	});		
+		return fn(false);
+	});
 };
 
 Room.prototype.addCorpse = function(s, monster, fn) {

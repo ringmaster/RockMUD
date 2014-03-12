@@ -80,6 +80,8 @@ Cmds = require('./src/commands').cmd,
 Skills = require('./src/skills').skill,
 Ticks = require('./src/ticks');
 
+require('./src/commandlist');
+
 io.set('log level', 1);
 
 server.listen(cfg.port);
@@ -87,29 +89,21 @@ server.listen(cfg.port);
 io.on('connection', function (s) {
 	s.on('login', function (r) {	
 		var parseCmd = function(r, s) {
-			var cmdArr = r.msg.split(' ');
-			r.cmd = cmdArr[0];
-			r.msg = cmdArr.slice(1).join(' ');
+			var cmdResult = false;
 
-			if (/[`~@#$%^&*()-+={}[]|]+$/g.test(r.msg) === false) {
-				if (r.cmd !== '') {
-					console.log(r);
-					if (r.cmd in Cmds) {
-						return Cmds[r.cmd](r, s);
-					} else if (r.cmd in Skills) {
-						return Skills[r.cmd](r, s);
-					} else {
-						s.emit('msg', {msg: 'Not a valid command.', styleClass: 'error'});
-						return Character.prompt(s);
-					}
-				} else {
+			if (r.cmd !== '') {
+				console.log(r);
+				if(cmdResult = Cmds.dispatch(s, r)) {
+					cmdResult(s, r);
+				}
+				else {
+					s.emit('msg', {msg: 'Not a valid command.', styleClass: 'error'});
 					return Character.prompt(s);
 				}
 			} else {
-				s.emit('msg', {msg: 'Invalid characters in command.'});
 				return Character.prompt(s);
 			}
-		};
+		}
 
 		if (r.msg !== '') { // not checking slashes
 			return Character.login(r, s, function (name, s, fnd) {
@@ -124,10 +118,10 @@ io.on('connection', function (s) {
 					});
 				} else {
 					s.join('creation'); // Character creation is its own socket.io room, 'mud' the other
-					s.player = {name:name};					
+					s.player = {name:name};
 					
 					Character.newCharacter(r, s, function(s) {
-						s.on('cmd', function (r) { 
+						s.on('cmd', function (r) {
 							parseCmd(r, s);
 						});
 					});
@@ -136,7 +130,7 @@ io.on('connection', function (s) {
 		} else {
 			return s.emit('msg', {msg : 'Enter your name:', res: 'login', styleClass: 'enter-name'});
 		}
-    });
+	});
 
 	// Quitting
 	s.on('quit', function () {

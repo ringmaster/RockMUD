@@ -610,26 +610,25 @@ Character.prototype.thirst = function(s, fn) {
 // boolean if item with the same vnum is in a players inventory
 Character.prototype.checkInventory = function(r, s, fn) {
 	var i = 0,
-	msgPatt = new RegExp('^' + r.msg);
+	msgPatt = new RegExp('^' + r.msg, 'i');
 	
 	if (s.player.items.length > 0) {
 		for (i; i < s.player.items.length; i += 1){
-			if (msgPatt.test(s.player.items[i].name.toLowerCase())) {
-				fn(true, s.player.items[i]);
+			if (msgPatt.test(s.player.items[i].name)) {
+				return fn(true, s.player.items[i]);
 			} else if (i === s.player.items.length - 1) {
-				fn(false);
+				return fn(false);
 			}
 		}
-	} else {
-		fn(false);
 	}
+	return fn(false);
 }
 
 // push an item into a players inventory, checks items to ensure a player can use it
 Character.prototype.addToInventory = function(s, item, fn) {
 	s.player.items.push(item);
 	
-	fn(true);
+	if(typeof fn !== 'undefined') fn(true);
 }
 
 Character.prototype.removeFromInventory = function(s, itemObj, fn) {
@@ -703,7 +702,44 @@ Character.prototype.wear = function(r, s, item, fn) {
 			}
 		}
 	}
-} 
+}
+
+Character.prototype.remove = function(r, s, item, fn) {
+	var bodyAreas = Object.keys(s.player.eq),
+		i = 0,
+		j = 0;
+
+	for (i; i < s.player.eq[item.slot].length; i++) {
+		if(s.player.eq[item.slot][i].item == item) {
+			this.addToInventory(s, s.player.eq[item.slot][i].item);
+			s.player.eq[item.slot].splice(i, 1);
+			switch(item.itemType) {
+				case 'weapon':
+					return fn(true, 'You no longer wield a ' + item.short + ' in your ' + s.player.eq[bodyAreas[i]][j].name);
+				case 'armor':
+					return fn(true, 'You removed a ' + item.short + ' from your ' + s.player.eq[bodyAreas[i]][j].name);
+			}
+		}
+	}
+	return fn(true, 'You are not wearing a ' + item.short + '.');
+}
+
+// boolean if item with the same vnum is in a players equipment
+Character.prototype.checkEquipment = function(r, s, fn) {
+	var i = 0,
+		slotidx = 0,
+		bodyAreas = Object.keys(s.player.eq),
+		msgPatt = new RegExp('^' + r.msg, 'i');
+
+	for (slotidx; slotidx < bodyAreas.length; slot++) {
+		for (i; i < s.player.eq[bodyAreas[slotidx]].length; i++) {
+			if (msgPatt.test(s.player.eq[bodyAreas[slotidx]][i].item.name)) {
+				return fn(true, s.player.eq[bodyAreas[slotidx]][i].item);
+			}
+		}
+	}
+	return fn(false);
+}
 
 Character.prototype.getLoad = function(s, fn) {
 	var load = Math.round((s.player.str + s.player.con / 4) * 10);

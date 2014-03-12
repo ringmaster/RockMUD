@@ -14,35 +14,74 @@ time = require('../server').time,
 areas = require('../server').areas;
 
 var Cmd = function () {
-
+	this.commands = [];
 };
 
-Cmd.prototype.move = function(r, s) {
-	if (s.player.position !== 'fighting' && s.player.position !== 'resting' && s.player.position !== 'sleeping' && s.player.cmv > 5) {
-		r.cmd = r.msg;
+Cmd.prototype.dispatch = function(s, r) {
+	var i = 0,
+		z = 0,
+		params = {},
+		map = [],
+		result = false;
 
-		Room.checkExit(r, s, function(fnd, roomid) {
-			if (fnd) {
+	for(i; i < this.commands.length; i++) {
+		if(result = r.msg.match(this.commands[i].match)) {
+			// If a submatch map was provided, map the submatches to named parameters
+			if (typeof this.commands[i].map !== 'undefined' && this.commands[i].map.constructor == Array) {
+				map = this.commands[i].map.slice(0);
+				map.unshift("entire");
+				for (z; z < map.length; z++) {
+					params[map[z]] = result[z] ? result[z] : '';
+				}
+			}
+			r.params = params;
+			return this.commands[i].fn;
+		}
+	}
+	return false;
+}
+
+Cmd.prototype.addCommand = function(match, fn, map) {
+	this.commands.push({match: match, fn: fn, map: map});
+}
+
+/**
+ * Command. Move the player
+ * @param socket s
+ * @param object r Command object
+ * @returns {*}
+ */
+Cmd.prototype.move = function(s, r) {
+	var direction = '';
+
+	if (s.player.position !== 'fighting' && s.player.position !== 'resting' && s.player.position !== 'sleeping' && s.player.cmv > 5) {
+		direction = r.params.direction;
+
+		Room.checkExit(s, direction, function(found, roomId) {
+			if (found) {
+				// Send a message to the old room, declaring the player's departure
 				Room.msgToRoom({
 					msg: s.player.name + ' the ' + s.player.race + ' walks ' + r.cmd + '.', 
 					playerName: s.player.name, 
 					roomid: s.player.roomid
 				}, true);
 
-				s.player.cmv = Math.round((s.player.cmv - (12 - s.player.dex/4)));	
-				s.player.roomid = roomid; // Make the adjustment in the socket character reference.
+				// Change the player's remaining move points and room
+				s.player.cmv = Math.round((s.player.cmv - (12 - s.player.dex/4)));
+				s.player.roomid = roomId; // Make the adjustment in the socket character reference.
 
 				Character.updatePlayer(s);
 
+				// Send a message to the new room, declaring the player's arrival
 				Room.getRoomObject({
 					area: s.player.area,
-					id: roomid
+					id: roomId
 				}, function(roomObj) {
 					Room.getRoom(s, function() {
 						Room.msgToRoom({
 							msg: s.player.name + ' the ' + s.player.race + ' enters the room.', 
 							playerName: s.player.name, 
-							roomid: roomid
+							roomid: roomId
 						}, true, function() {
 							return Character.prompt(s);
 						});
@@ -221,19 +260,40 @@ Cmd.prototype.kill = function(r, s) {
 	});
 }
 
-Cmd.prototype.look = function(r, s) {
-	if (r.msg === '') { 
-		Room.getRoom(s, function(room) {
-			return Character.prompt(s);
-		});
-	} else {
-		// Gave us a noun, so lets see if something matches it in the room. 
-		Room.checkMonster(r, s, function(fnd, monster) {
-			Room.checkItem(r, s, function(fnd, item) {
+/**
+ * Command. Show the description of the current room
+ * @param Socket s
+ * @param Object r
+ */
+Cmd.prototype.look = function(s, r) {
+	Room.getRoom(s, function(room) {
+		return Character.prompt(s);
+	});
+}
+
+/**
+ * Command. Show the description of a thing in the current room
+ * @param Socket s
+ * @param Object r
+ */
+Cmd.prototype.lookAt = function(s, r) {
+	// Gave us a noun, so lets see if something matches it in the room.
+	Room.checkMonster(s, r.params.target, function(fnd, monster) {
+		if(fnd) {
+			s.emit('msg', {msg: monster.long});
+		}
+		else {
+			Room.checkItem(s, r.params.target, function (fnd, item) {
+				if(fnd) {
+					s.emit('msg', {msg: item.long});
+				}
+				else {
+					s.emit('msg', {msg: "You don't see that here."});
+				}
 				return Character.prompt(s);
 			});
-		});
-	}
+		}
+	});
 }
 
 Cmd.prototype.where = function(r, s) {
@@ -449,10 +509,9 @@ Cmd.prototype.wear = function(r, s) {
 	}
 }
 
-/*
 Cmd.prototype.remove = function(r, s) {
 	if (r.msg !== '') {
-		Character.checkInventory(r, s, function(fnd, item) {
+		Character.checkEquipment(r, s, function(fnd, item) {
 			if (fnd) {
 				Character.remove(r, s, item, function(removeSuccess, msg) {
 					s.emit('msg', {msg: msg, styleClass: 'cmd-wear'});
@@ -468,7 +527,6 @@ Cmd.prototype.remove = function(r, s) {
 		return Character.prompt(s);
 	}
 }
-*/
 
 Cmd.prototype.inventory = function(r, s) {
 	var iStr = '',
@@ -529,13 +587,18 @@ Cmd.prototype.score = function(r, s) {
 	return Character.prompt(s);
 }
 
-Cmd.prototype.help = function(r, s) {
+/**
+ * Display default help or on a specific topic
+ * @param Socket s
+ * @param Object r
+ */
+Cmd.prototype.help = function(s, r) {
 	// if we don't list a specific help file we return help.json
 	var helpTxt = '',
 		helpfile = 'help';
 
-	if (r.msg != '') {
-		helpfile = r.msg.toLowerCase().replace(/\s/g, '_').replace('.', '_');
+	if (r.params.topic != '') {
+		helpfile = r.params.topic.toLowerCase().replace(/\s/g, '_').replace('.', '_');
 	}
 	fs.readFile('./help/' + helpfile + '.json', function (err, data) {
 		if (!err) {
