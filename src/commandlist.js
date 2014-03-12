@@ -18,3 +18,5 @@ cmd.addCommand(/^i(nventory)?$/i, cmd.inventory);
 
 cmd.addCommand(/^restore$/i, cmd.restore);
 cmd.addCommand(/^save$/i, cmd.save);
+
+cmd.addCommand(/^kill (.+)$/i, cmd.kill, ["target"]);

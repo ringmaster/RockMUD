@@ -231,16 +231,16 @@ Cmd.prototype.drop = function(s, r) {
 
 
 // For attacking in-game monsters
-Cmd.prototype.kill = function(r, s) {
-	Room.checkMonster(r, s, function(fnd, monster) {
-		if (fnd) {
+Cmd.prototype.kill = function(s, r) {
+	Room.checkMonster(s, r.params.target, function(found, monster) {
+		if (found) {
 			Combat.begin(s, monster, function(contFight, monster) { // the first round qualifiers
 				var combatInterval;
 				
 				if (contFight) {
 					// Combat Loop
 					combatInterval = setInterval(function() {
-						if (s.player.position === 'fighting' && monster.position === 'fighting') {	
+						if (s.player.position === 'fighting' && monster.position === 'fighting') {
 							
 							Combat.round(s, monster, function() {
 								if (monster.chp <= 0) {
