@@ -16,7 +16,7 @@ Room.prototype.getArea = function(areaName, fn) {
 			return fn(area);
 		} else {
 			fs.readFile('./areas/' + areaName + '.json', function (err, area) {
-				return fn(JSON.parse(area));	
+				return fn(JSON.parse(area));
 			});
 		}
 	});
@@ -128,13 +128,13 @@ Room.prototype.updateArea = function(areaName, fn) {
 }
 
 // Return a room in memory as an object, pass in the area name and the room vnum {area: 'Midgaard', vnum: 1}
-Room.prototype.getRoomObject = function(areaQuery, fn) {
-	this.checkArea(areaQuery.area, function(fnd, area) {
+Room.prototype.getRoomObject = function(room, fn) {
+	this.checkArea(room.area, function(fnd, area) {
 		var i = 0;
 
 		if (fnd) { //  area was in areas[]
 			for (i; i < area.rooms.length; i += 1) {
-				if (area.rooms[i].id === areaQuery.id) {		
+				if (area.rooms[i].id === room.id) {
 					return fn(area.rooms[i]);
 				} 
 			}
@@ -285,7 +285,7 @@ Room.prototype.checkItem = function(s, name, fn) {
 	room.getRoomObject({area: s.player.area, id: s.player.roomid}, function(roomObj) {
 		if (roomObj.items.length > 0) {
 			return room.getItems(roomObj, {}, function(items) {
-				var msgPatt = new RegExp('^' + name),
+				var msgPatt = new RegExp('^' + name, 'i'),
 				i = 0;
 
 				for (i; i < items.length; i += 1) {
@@ -319,11 +319,18 @@ Room.prototype.addCorpse = function(s, monster, fn) {
 	return fn();
 }
 
-Room.prototype.removeItemFromRoom = function(roomQuery, fn) {
+/**
+ * Remove an item from a room
+ * @param Object room
+ * @param Object item
+ * @param fn
+ * @returns {*}
+ */
+Room.prototype.removeItem = function (room, item, fn) {
 	var found = false;
-	this.getRoomObject(roomQuery, function(roomObj) {
-		roomObj.items = roomObj.items.filter(function(item, i) {
-			if (item.id === roomQuery.item.id) {
+	this.getRoomObject(room, function(roomObj) {
+		roomObj.items = roomObj.items.filter(function(roomItem, i) {
+			if (item.id === roomItem.id) {
 				found = true;
 				return false;
 			}
@@ -335,7 +342,7 @@ Room.prototype.removeItemFromRoom = function(roomQuery, fn) {
 
 Room.prototype.addItem = function(itemOpt, fn) {
 	this.getRoomObject(itemOpt, function(roomObj) {
-		roomObj.items.push(itemOpt.item);		
+		roomObj.items.push(itemOpt.item);
 	});
 	
 	return fn();

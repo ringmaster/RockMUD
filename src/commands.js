@@ -46,6 +46,24 @@ Cmd.prototype.addCommand = function(match, fn, map) {
 }
 
 /**
+ * Command.  Add a new command to the command list
+ * @param s
+ * @param r
+ * @todo make this function work
+ */
+Cmd.prototype.addNewCommand = function(s, r) {
+	if (s.player.role === 'admin') {
+		Cmd.addCommand(new RegExp(r.params.command, 'i'), r.params.method);
+		s.emit('msg', {
+			msg: 'Command added.'
+		});
+	}
+	else {
+		s.emit('msg', {msg: 'You do not possess that kind of power.', styleClass: 'error' });
+	}
+}
+
+/**
  * Command. Move the player
  * @param socket s
  * @param object r Command object
@@ -106,7 +124,13 @@ Cmd.prototype.move = function(s, r) {
 	}
 }
 
-Cmd.prototype.who = function(r, s) {
+/**
+ * Show who is online
+ * @param s
+ * @param r
+ * @returns {*}
+ */
+Cmd.prototype.who = function(s, r) {
 	var str = '', 
 	player,
 	i = 0;
@@ -115,7 +139,7 @@ Cmd.prototype.who = function(r, s) {
 		for (i; i < players.length; i += 1) {
 			player = io.sockets.socket(players[i].sid).player; // A visible player in players[]
 
-			str += '<li>' + player.name[0].toUpperCase() + player.name.slice(1) + ' ';
+			str += '<li>' + player.name + ' ';
 
 			if (player.title === '') {
 				str += 'a level ' + player.level   +
@@ -142,35 +166,36 @@ Cmd.prototype.who = function(r, s) {
 	return Character.prompt(s);
 }
 
-Cmd.prototype.get = function(r, s, fn) {
-	if (r.msg !== '') {
-		Room.checkItem(r, s, function(fnd, item) {
-			if (fnd) {
-				Character.addToInventory(s, item, function(added) {
-					if (added) {
-						Room.removeItemFromRoom({area: s.player.area, id: s.player.roomid, item: item}, function() {
-							console.log(item);
-							s.emit('msg', {
-								msg: 'You picked up ' + item.short,
-								styleClass: 'get'
-							});
-							
-							return Character.prompt(s);
+/**
+ * Get an item
+ * @param s
+ * @param r
+ * @returns {*}
+ */
+Cmd.prototype.get = function(s, r) {
+	Room.checkItem(s, r.params.target, function(found, item) {
+		if (found) {
+			Character.addToInventory(s, item, function(added) {
+				if (added) {
+					Room.removeItem({area: s.player.area, id: s.player.roomid}, item, function () {
+						console.log(item);
+						s.emit('msg', {
+							msg: 'You picked up ' + item.short,
+							styleClass: 'get'
 						});
-					} else {
-						s.emit('msg', {msg: 'Could not pick up a ' + item.short, styleClass: 'error'});					
+
 						return Character.prompt(s);
-					}
-				});
-			} else {
-				s.emit('msg', {msg: 'That item is not here.', styleClass: 'error'});
-				return Character.prompt(s);
-			}
-		});
-	} else {
-		s.emit('msg', {msg: 'Get what?', styleClass: 'error'});
-		return Character.prompt(s);
-	}
+					});
+				} else {
+					s.emit('msg', {msg: 'Could not pick up a ' + item.short, styleClass: 'error'});
+					return Character.prompt(s);
+				}
+			});
+		} else {
+			s.emit('msg', {msg: 'That item is not here.', styleClass: 'error'});
+			return Character.prompt(s);
+		}
+	});
 }
 
 Cmd.prototype.drop = function(r, s) {

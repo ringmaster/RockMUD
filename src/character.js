@@ -624,7 +624,12 @@ Character.prototype.checkInventory = function(r, s, fn) {
 	return fn(false);
 }
 
-// push an item into a players inventory, checks items to ensure a player can use it
+/**
+ * Push an item into this player's inventory
+ * @param Socket s
+ * @param Object item
+ * @param function fn
+ */
 Character.prototype.addToInventory = function(s, item, fn) {
 	s.player.items.push(item);
 	
