@@ -223,7 +223,7 @@ Cmd.prototype.drop = function(s, r) {
 				}
 			});
 		} else {
-			s.emit('msg', {msg: 'That item is not here.', styleClass: 'error'});
+			s.emit('msg', {msg: "You are not carrying that item.", styleClass: 'error'});
 			return Character.prompt(s);
 		}
 	});
