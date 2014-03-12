@@ -21,7 +21,7 @@ require(
 			var ws = io.connect(''),
 			terminal = dom.byId('terminal'),
 			/* Command aliases */
-			aliases = {	
+			aliases = {
 				n: 'north',
 				e: 'east',
 				w: 'west',
@@ -43,7 +43,7 @@ require(
 				ooc: 'chat',
 				slist: 'skills'
 			},
-			movement = ['north', 'east', 'south', 'west'],
+
 			display = function(r) {
 				var msg = r.msg;
 				if (r.emit == 'password') {
@@ -73,46 +73,26 @@ require(
 				else {
 					domAttr.set(dom.byId('cmd'), 'type', 'text');
 				}
-			},		
-			checkMovement = function(cmdStr, fn) {
-				if (movement.toString().indexOf(cmdStr) !== -1) {
-					return fn(true, 'move ' + cmdStr);
-				} else {
-					return fn(false, cmdStr);
-				}
 			},
-			checkAlias = function(cmdStr, fn) { 
-				var keys = Object.keys(aliases),
-				i = 0,
-				cmd,
-				msg,
-				cmdArr = cmdStr.split(' ');
 
-				cmd = cmdArr[0];
-				msg = cmdArr.slice(1).join(' ');
-	
-				for (i; i < keys.length; i += 1) {
-					if (keys[i] === cmd) {
-						if (msg === '') {
-							return fn(aliases[keys[i]]);
-						} else {
-							return fn(aliases[keys[i]] + ' ' + msg);
-						}
-					}	
+			replaceAliases = function(cmdStr) {
+				var keys = Object.keys(aliases),
+				i = 0;
+
+				for (i; i < keys.length; i++) {
+					if (keys[i] === cmdStr) {
+						return aliases[keys[i]];
+					}
 				}
 
-				return fn(cmd + ' ' + msg);	
+				return cmdStr;
 			},
 
 			displayCmd = function(msg) {
 				var node = dom.byId('cmd');
 
 				display({
-					msg : checkAlias(msg, function(cmd) {
-						return checkMovement(cmd, function(wasMov, cmd) {
-							return cmd;
-						});
-					}),
+					msg : replaceAliases(msg),
 					emit : (function () {
 						var res = domAttr.get(node, 'mud-state');
 
