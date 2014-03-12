@@ -13,3 +13,6 @@ cmd.addCommand(/^(north|east|south|west|up|down|enter|exit)$/i, cmd.move, ["dire
 cmd.addCommand(/^who$/i, cmd.who);
 
 cmd.addCommand(/^(?:get|take|pick up) +(.+)$/i, cmd.get, ["target"]);
+
+cmd.addCommand(/^restore$/i, cmd.restore);
+cmd.addCommand(/^save$/i, cmd.save);

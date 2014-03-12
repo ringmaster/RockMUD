@@ -439,7 +439,11 @@ Cmd.prototype.time = function(r, s) {
 
 /** Related to Saving and character adjustment/interaction **/
 
-Cmd.prototype.save = function(r, s) {
+/**
+ * Save the current player data
+ * @param s
+ */
+Cmd.prototype.save = function(s) {
 	Character.save(s, function() {
 		s.emit('msg', {msg: s.player.name + ' was saved!', styleClass: 'save'});
 		return Character.prompt(s);
@@ -688,10 +692,13 @@ Cmd.prototype.reboot = function(r, s) {
 	}
 }
 
-// Fully heal everyone on the MUD
-Cmd.prototype.restore = function(r, s) {
-	var str = '',
-		player,
+/**
+ * Fully heal everyone on the MUD
+ * @param s
+ * @returns {*}
+ */
+Cmd.prototype.restore = function(s) {
+	var player,
 		i = 0,
 		healed = 0;
 
