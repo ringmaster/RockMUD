@@ -607,17 +607,21 @@ Character.prototype.thirst = function(s, fn) {
 	}
 }
 
-// boolean if item with the same vnum is in a players inventory
-Character.prototype.checkInventory = function(r, s, fn) {
+/**
+ * Callback with whether an item with the passed name is in the players inventory
+ * @param Socket s
+ * @param string itemname
+ * @param function fn(boolean found, object item)
+ * @returns {*}
+ */
+Character.prototype.checkInventory = function(s, itemname, fn) {
 	var i = 0,
-	msgPatt = new RegExp('^' + r.msg, 'i');
+		msgPattern = new RegExp('\\b' + itemname, 'i');
 	
 	if (s.player.items.length > 0) {
-		for (i; i < s.player.items.length; i += 1){
-			if (msgPatt.test(s.player.items[i].name)) {
+		for (i; i < s.player.items.length; i++) {
+			if (msgPattern.test(s.player.items[i].name)) {
 				return fn(true, s.player.items[i]);
-			} else if (i === s.player.items.length - 1) {
-				return fn(false);
 			}
 		}
 	}
@@ -628,7 +632,7 @@ Character.prototype.checkInventory = function(r, s, fn) {
  * Push an item into this player's inventory
  * @param Socket s
  * @param Object item
- * @param function fn
+ * @param function fn(boolean success)
  */
 Character.prototype.addToInventory = function(s, item, fn) {
 	s.player.items.push(item);
@@ -636,23 +640,25 @@ Character.prototype.addToInventory = function(s, item, fn) {
 	if(typeof fn !== 'undefined') fn(true);
 }
 
+/**
+ * Remove an item from inventory
+ * @param Socket s
+ * @param Object itemObj
+ * @param function fn(boolean success)
+ * @returns {*}
+ */
 Character.prototype.removeFromInventory = function(s, itemObj, fn) {
-	var i = 0;
-
+	var removed = false;
 	if (s.player.items.length > 0) {
-		s.player.items = s.player.items.filter(function(item, i) {
+		s.player.items = s.player.items.filter(function(item) {
 			if (item.id !== itemObj.id) {
+				removed = true;
 				return true;
-			}		
+			}
 		});
-	
-		if (typeof fn === 'function') {
-			return fn(true);
-		}	
-	} else {
-		if (typeof fn === 'function') {
-			return fn(false);
-		}
+	}
+	if (typeof fn === 'function') {
+		return fn(removed);
 	}
 }
 
@@ -734,7 +740,7 @@ Character.prototype.checkEquipment = function(r, s, fn) {
 	var i = 0,
 		slotidx = 0,
 		bodyAreas = Object.keys(s.player.eq),
-		msgPatt = new RegExp('^' + r.msg, 'i');
+		msgPatt = new RegExp('\\b' + r.msg, 'i');
 
 	for (slotidx; slotidx < bodyAreas.length; slot++) {
 		for (i; i < s.player.eq[bodyAreas[slotidx]].length; i++) {

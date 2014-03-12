@@ -252,7 +252,7 @@ Room.prototype.checkMonster = function(s, name, fn) {
 	var room = this;
 
 	room.getRoomObject({area: s.player.area, id: s.player.roomid}, function(roomObj) {
-		var msgPatt = new RegExp('^' + name, 'i'),
+		var msgPatt = new RegExp('\\b' + name, 'i'),
 		i = 0;
 		
 		if (roomObj.monsters.length > 0) {
@@ -285,7 +285,7 @@ Room.prototype.checkItem = function(s, name, fn) {
 	room.getRoomObject({area: s.player.area, id: s.player.roomid}, function(roomObj) {
 		if (roomObj.items.length > 0) {
 			return room.getItems(roomObj, {}, function(items) {
-				var msgPatt = new RegExp('^' + name, 'i'),
+				var msgPatt = new RegExp('\\b' + name, 'i'),
 				i = 0;
 
 				for (i; i < items.length; i += 1) {
@@ -340,9 +340,16 @@ Room.prototype.removeItem = function (room, item, fn) {
 	return fn(found);
 }
 
-Room.prototype.addItem = function(itemOpt, fn) {
-	this.getRoomObject(itemOpt, function(roomObj) {
-		roomObj.items.push(itemOpt.item);
+/**
+ * Add an item to a room
+ * @param Object room
+ * @param Object itemObj
+ * @param function fn()
+ * @returns {*}
+ */
+Room.prototype.addItem = function(room, itemObj, fn) {
+	this.getRoomObject(room, function(roomObj) {
+		roomObj.items.push(itemObj);
 	});
 	
 	return fn();

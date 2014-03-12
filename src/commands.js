@@ -198,34 +198,35 @@ Cmd.prototype.get = function(s, r) {
 	});
 }
 
-Cmd.prototype.drop = function(r, s) {
-	if (r.msg !== '') {
-		Character.checkInventory(r, s, function(fnd, item) {
-			if (fnd) {
-				Character.removeFromInventory(s, item, function(removed) {
-					if (removed) {
-						Room.addItem({area: s.player.area, id: s.player.roomid, item: item}, function() {
-							s.emit('msg', {
-								msg: 'You dropped ' + item.short,
-								styleClass: 'get'
-							});
-							
-							return Character.prompt(s);
+/**
+ * Drop an item
+ * @param s
+ * @param r
+ * @returns {*}
+ */
+Cmd.prototype.drop = function(s, r) {
+	Character.checkInventory(s, r.params.target, function(fnd, item) {
+		if (fnd) {
+			Character.removeFromInventory(s, item, function(removed) {
+				if (removed) {
+					Room.addItem({area: s.player.area, id: s.player.roomid}, item, function() {
+						s.emit('msg', {
+							msg: 'You dropped ' + item.short,
+							styleClass: 'get'
 						});
-					} else {
-						s.emit('msg', {msg: 'Could not drop a ' + item.short, styleClass: 'error'});					
+
 						return Character.prompt(s);
-					}
-				});
-			} else {
-				s.emit('msg', {msg: 'That item is not here.', styleClass: 'error'});
-				return Character.prompt(s);
-			}
-		});
-	} else {
-		s.emit('msg', {msg: 'Drop what?', styleClass: 'error'});
-		return Character.prompt(s);
-	}
+					});
+				} else {
+					s.emit('msg', {msg: 'Could not drop a ' + item.short, styleClass: 'error'});
+					return Character.prompt(s);
+				}
+			});
+		} else {
+			s.emit('msg', {msg: 'That item is not here.', styleClass: 'error'});
+			return Character.prompt(s);
+		}
+	});
 }
 
 
@@ -303,17 +304,24 @@ Cmd.prototype.look = function(s, r) {
  */
 Cmd.prototype.lookAt = function(s, r) {
 	// Gave us a noun, so lets see if something matches it in the room.
-	Room.checkMonster(s, r.params.target, function(fnd, monster) {
-		if(fnd) {
+	Room.checkMonster(s, r.params.target, function(found, monster) {
+		if(found) {
 			s.emit('msg', {msg: monster.long});
 		}
 		else {
-			Room.checkItem(s, r.params.target, function (fnd, item) {
-				if(fnd) {
+			Room.checkItem(s, r.params.target, function (found, item) {
+				if(found) {
 					s.emit('msg', {msg: item.long});
 				}
 				else {
-					s.emit('msg', {msg: "You don't see that here."});
+					Character.checkInventory(s, r.params.target, function(found, item) {
+						if(found) {
+							s.emit('msg', {msg: item.long});
+						}
+						else {
+							s.emit('msg', {msg: "You don't see that here."});
+						}
+					})
 				}
 				return Character.prompt(s);
 			});
@@ -557,21 +565,26 @@ Cmd.prototype.remove = function(r, s) {
 	}
 }
 
-Cmd.prototype.inventory = function(r, s) {
+/**
+ * Display a list of carried things
+ * @param s
+ * @param r
+ * @returns {*}
+ */
+Cmd.prototype.inventory = function(s) {
 	var iStr = '',
 	i = 0;
 	
 	if (s.player.items.length > 0) {
-		for (i; i < s.player.items.length; i += 1) {			
+		for (i; i < s.player.items.length; i += 1) {
 			iStr += '<li>' + s.player.items[i].short + '</li>';
 		}
 		
 		s.emit('msg', {msg: '<ul>' + iStr + '</ul>', styleClass: 'inventory' });
-		return Character.prompt(s);
 	} else {
 		s.emit('msg', {msg: 'No items in your inventory, can carry ' + s.player.carry + ' pounds of gear.', styleClass: 'inventory' });
-		return Character.prompt(s);
 	}
+	return Character.prompt(s);
 }
 
 Cmd.prototype.score = function(r, s) { 
