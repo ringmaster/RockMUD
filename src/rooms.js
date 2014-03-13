@@ -174,54 +174,25 @@ Room.prototype.getPlayers = function(s, room, fn) {
 }
 
 Room.prototype.getItems = function(room, optObj, fn) {
-	var arr = [],
-	i = 0;
-
-	if (optObj.specific != undefined) {
-		if (room.items.length > 0) {
-			for (i; i < room.items.length; i += 1) {
-				arr.push(room.items[i][optObj.specific]);
-			}
-			return fn(arr);
-		} else {
-			return fn(arr);
-		}
-	} else {
-		if (room.items.length > 0) {
-			for (i; i < room.items.length; i += 1) {
-				arr.push(room.items[i]);
-			}
-			return fn(arr);
-		} else {
-			return fn(arr);
-		}
-	}
+	return this.get(room, 'items', optObj, fn);
 }
 
 Room.prototype.getMonsters = function(room, optObj, fn) {
-	var arr = [],
-	i = 0;
+	return this.get(room, 'monsters', optObj, fn);
+}
 
-	if (optObj.specific !== undefined) {
-		if (room.monsters.length > 0) {
-			for (i; i < room.monsters.length; i += 1) {
-				arr.push(room.monsters[i][optObj.specific]);
-			}
-			
-			return fn(arr);
-		} else {
-			return fn(arr);
-		}
-	} else {
-		if (room.monsters.length > 0) {
-			for (i; i < room.monsters.length; i += 1) {
-				arr.push(room.monsters[i]);
-			}			
-			return fn(arr);
-		} else {
-			return fn(arr);
-		}
+Room.prototype.get = function(room, thing, optObj, fn) {
+	var arr = room[thing].slice(0);
+
+	if (optObj.specific != undefined) {
+		arr = arr.map(function (element) {
+			return element[optObj.specific];
+		});
 	}
+	if (optObj.map != undefined) {
+		arr = arr.map(optObj.map);
+	}
+	return fn(arr);
 }
 
 /**
@@ -293,7 +264,7 @@ Room.prototype.checkItem = function(s, name, fn) {
 				var msgPatt = new RegExp('\\b' + name, 'i'),
 				i = 0;
 
-				for (i; i < items.length; i += 1) {
+				for (i; i < items.length; i++) {
 					if (msgPatt.test(items[i].name)) {
 						return fn(true, items[i]);
 					}
