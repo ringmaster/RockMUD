@@ -13,7 +13,8 @@ Your Short Sword (proper noun) slices (verb attached to item) a Red Dragon (prop
 You swing and miss a Red Dragon with barbaric intensity (14)
 */
 Combat.prototype.begin = function(s, monster, fn) {
-	var combat = this;
+	var combat = this,
+		weapons = combat.getWeapons(s);
 
 	s.player.position = 'fighting';
 	monster.position = 'fighting'; 
@@ -23,25 +24,33 @@ Combat.prototype.begin = function(s, monster, fn) {
 		total = total + 1 + s.player.dex/4;
 
 		if (total > monster.ac) {
-			if (s.player.eq.hands.length !== 0) {
-				for (i; i < s.player.eq.hands.length; i += 1) {
-					if (s.player.eq.hands[i].item !== null && s.player.eq.hands[i].item.itemType === 'weapon') {
-						combat.meleeDamage(s.player, monster, s.player.eq.hands[i].item, function(total, weapon) {
-							s.emit('msg', {
-								msg: 'You ' + weapon.attackType + ' ' + monster.short + '(' + total + ')', 
-								styleClass: 'player-hit'
-							});
+			if (weapons.length !== 0) {
+				for (i; i < weapons.length; i++) {
+					combat.meleeDamage(s.player, monster, weapons[i].item, function(total, weapon) {
+						s.emit('msg', {
+							msg: 'You ' + weapon.attackType + ' ' + monster.short + '(' + total + ')',
+							styleClass: 'player-hit'
 						});
-					}
+					});
 				}
 
-				return fn(true, monster);	
+				return fn(true, monster);
 			} else {
 				// Unarmed
 			}		
 		} else {
 			return s.emit('msg', {msg: 'You swing and miss ' +  monster.short, styleClass: 'player-miss'});
 		}
+	});
+}
+
+/**
+ * Get the weapons that the player is wielding
+ * @param s
+ */
+Combat.prototype.getWeapons = function(s) {
+	return s.player.eq.slice(0).filter(function(slot){
+		return (slot.slot == 'hands' && slot.item != null && slot.item.itemType == 'weapon');
 	});
 }
 
@@ -54,7 +63,7 @@ Combat.prototype.begin = function(s, monster, fn) {
 */
 Combat.prototype.round = function(s, monster, fn) {
 	var combat = this;
-	combat.attackerRound(s, monster, function(s, monster) {		
+	combat.attackerRound(s, monster, function(s, monster) {
 		if (monster.chp > 0) {
 			combat.targetRound(s, monster, function(s, monster) {
 				return fn();
@@ -70,33 +79,32 @@ Combat.prototype.round = function(s, monster, fn) {
 * Attacker is always at the top of the round
 */
 Combat.prototype.attackerRound = function(s, monster, fn) {
-	var combat = this;
+	var combat = this,
+		weapons = combat.getWeapons(s);
 	Dice.roll(1, 20, function(total) { // Roll against AC
 		var i = 0;
 		total = total + 1 + s.player.dex/4;
 
 		if (total > monster.ac) {
-			if (s.player.eq.hands.length !== 0) {
-				for (i; i < s.player.eq.hands.length; i += 1) {
-					if (s.player.eq.hands[i].item !== null && s.player.eq.hands[i].item.itemType === 'weapon') {
-						combat.meleeDamage(s.player, monster, s.player.eq.hands[i].item, function(total, weapon) {
-							monster.chp = (monster.chp - total);
-							s.emit('msg', {
-								msg: 'You ' + weapon.attackType + ' ' + monster.short + '(' + total + ')', 
-								styleClass: 'player-hit'
-							});
+			if (weapons.length !== 0) {
+				for (i; i < weapons.length; i += 1) {
+					combat.meleeDamage(s.player, monster, weapons[i].item, function(total, weapon) {
+						monster.chp = (monster.chp - total);
+						s.emit('msg', {
+							msg: 'You ' + weapon.attackType + ' ' + monster.short + '(' + total + ')',
+							styleClass: 'player-hit'
 						});
-					}
+					});
 				}
 
-				return fn(s, monster);	
+				return fn(s, monster);
 			} else {
 				// Unarmed
 			}		
 		} else {
 			s.emit('msg', {msg: 'You swing and miss ' +  monster.short, styleClass: 'player-miss'});
 
-			return fn(s, monster);	
+			return fn(s, monster);
 		}
 	});
 }
