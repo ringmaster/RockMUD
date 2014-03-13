@@ -42,13 +42,14 @@ Room.prototype.getRoom = function(s, fn) {
 	var room = this,
 	displayRoom = function(rooms, fn) {
 		var i = 0,
-		roomStr = '';
+			roomStr = '',
+			visibleItems = [];
 
 		for (i; i < rooms.length; i += 1) {
 			if (rooms[i].id === s.player.roomid) {
 				room.getExits(rooms[i], function(exits) {
 					room.getPlayers(s, rooms[i], function(playersInRoom) {
-						room.getItems(rooms[i], {specific: 'short'}, function(items) {
+						room.getItems(rooms[i], {}, function(items) {
 							room.getMonsters(rooms[i], {specific: 'short'}, function(monsters) {
 								if (exits.length > 0) {
 								 	roomStr += '<li class="room-exits">Visible Exits: ' + 
@@ -61,11 +62,15 @@ Room.prototype.getRoom = function(s, fn) {
 									roomStr += '<li>Here:' + playersInRoom.join(', ') +
 									' ' + monsters.join(', ') + '</li>';
 								}
-								
-								if (items.length > 0) {
-									roomStr += '<li>Items: ' + items.join(', ') +
-									'</li>';
-								}							
+
+								visibleItems = items.slice(0)
+									.filter(function(item){
+										return item.itemType != 'scenery';
+									})
+									.map(function(item) { return item.short; });
+								if (visibleItems.length > 0) {
+									roomStr += '<li>Items: ' + visibleItems.join(', ') + '</li>';
+								}
 							
 								s.emit('msg', {
 									msg: '<h2 class="room-title">' + rooms[i].title + '</h2>' + 

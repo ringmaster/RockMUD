@@ -184,22 +184,29 @@ Cmd.prototype.doWhat = function(s, r) {
 Cmd.prototype.get = function(s, r) {
 	Room.checkItem(s, r.params.target, function(found, item) {
 		if (found) {
-			Character.addToInventory(s, item, function(added) {
-				if (added) {
-					Room.removeItem({area: s.player.area, id: s.player.roomid}, item, function () {
-						console.log(item);
-						s.emit('msg', {
-							msg: 'You picked up ' + item.short,
-							styleClass: 'get'
-						});
+			if(item.itemType == 'scenery') {
+				s.emit('msg', {msg: "You can't get that.", styleClass: 'error'});
+				return Character.prompt(s);
+			}
+			else {
+				Character.addToInventory(s, item, function (added) {
+					if (added) {
+						Room.removeItem({area: s.player.area, id: s.player.roomid}, item, function () {
+							console.log(item);
+							s.emit('msg', {
+								msg: 'You picked up ' + item.short,
+								styleClass: 'get'
+							});
 
+							return Character.prompt(s);
+						});
+					}
+					else {
+						s.emit('msg', {msg: 'Could not pick up a ' + item.short, styleClass: 'error'});
 						return Character.prompt(s);
-					});
-				} else {
-					s.emit('msg', {msg: 'Could not pick up a ' + item.short, styleClass: 'error'});
-					return Character.prompt(s);
-				}
-			});
+					}
+				});
+			}
 		} else {
 			s.emit('msg', {msg: 'That item is not here.', styleClass: 'error'});
 			return Character.prompt(s);
