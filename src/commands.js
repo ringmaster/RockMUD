@@ -344,15 +344,35 @@ Cmd.prototype.where = function(r, s) {
 
 
 /** Communication Channels **/
-Cmd.prototype.say = function(r, s) {
-	var i  = 0;
-	
-	s.emit('msg', {msg: 'You say> ' + r.msg, styleClass: 'cmd-say'});
+
+/**
+ * Say something aloud in the current player room
+ * @param s
+ * @param r
+ */
+Cmd.prototype.say = function(s, r) {
+	s.emit('msg', {msg: 'You say> ' + r.params.speech, styleClass: 'cmd-say'});
 	
 	Room.msgToRoom({
-		msg: s.player.name + ' says> ' + r.msg +  '.', 
+		msg: s.player.name + ' says> ' + r.params.speech,
 		playerName: s.player.name, 
 		roomid: s.player.roomid
+	}, true);
+};
+
+/**
+ * Say something aloud in the current player room
+ * @param s
+ * @param r
+ */
+Cmd.prototype.emote = function(s, r) {
+	s.emit('msg', {msg: s.player.name + ' (you) ' + r.params.speech, styleClass: 'cmd-emote'});
+
+	Room.msgToRoom({
+		msg: s.player.name + r.params.speech,
+		playerName: s.player.name,
+		roomid: s.player.roomid,
+		styleClass: 'cmd-emote'
 	}, true);
 };
 
@@ -362,7 +382,7 @@ Cmd.prototype.yell = function(r, s) {
 	s.emit('msg', {msg: 'You yell> ' + r.msg, styleClass: 'cmd-say'});
 	
 	Room.msgToArea({
-		msg: s.player.name + ' yells> ' + r.msg +  '.', 
+		msg: s.player.name + ' yells> ' + r.msg +  '.',
 		playerName: s.player.name
 	}, true);
 };

@@ -20,3 +20,7 @@ cmd.addCommand(/^restore$/i, cmd.restore);
 cmd.addCommand(/^save$/i, cmd.save);
 
 cmd.addCommand(/^kill (.+)$/i, cmd.kill, ["target"]);
+
+cmd.addCommand(/^(?:say |")(.+)$/i, cmd.say, ["speech"]);
+cmd.addCommand(/^(?:emote |:)(.+)$/i, cmd.emote, ["speech"]);
+
