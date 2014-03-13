@@ -13,6 +13,7 @@ cmd.addCommand(/^(north|east|south|west|up|down|enter|exit)$/i, cmd.move, ["dire
 cmd.addCommand(/^where$/i, cmd.where);
 
 cmd.addCommand(/^who$/i, cmd.who);
+cmd.addCommand(/^(wear|drop|remove|get|take|pick up|leave|put down|equip)$/i, cmd.doWhat, ["what"]);
 
 cmd.addCommand(/^(?:get|take|pick up) +(.+)$/i, cmd.get, ["target"]);
 cmd.addCommand(/^(?:drop|leave|put down) +(.+)$/i, cmd.drop, ["target"]);
@@ -36,5 +37,5 @@ cmd.addCommand(/^(?:say |")([^"].*)$/i, cmd.say, ["speech"]);
 cmd.addCommand(/^(?:yell |!)(.+)$/i, cmd.yell, ["speech"]);
 cmd.addCommand(/^(?:emote |:)(.+)$/i, cmd.emote, ["speech"]);
 cmd.addCommand(/^chat (.+)$/i, cmd.chat, ["speech"]);
-cmd.addCommand(/^(?:wall(?op) |achat |""")(.+)$/i, cmd.achat, ["speech"]);
+cmd.addCommand(/^(?:wall(?:op) |achat |""")(.+)$/i, cmd.achat, ["speech"]);
 

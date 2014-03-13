@@ -167,6 +167,15 @@ Cmd.prototype.who = function(s, r) {
 }
 
 /**
+ * Provide an error command for commands that require a target
+ * @param s
+ * @param r
+ */
+Cmd.prototype.doWhat = function(s, r) {
+	s.emit('msg', {msg: r.params.what + ' <i>what</i>?', styleClass: 'error'});
+}
+
+/**
  * Get an item
  * @param s
  * @param r
