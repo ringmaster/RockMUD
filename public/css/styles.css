@@ -234,6 +234,10 @@ margin-top: 5px;
 font-size: small;
 }
 
+.cmd-emote {
+font-style: italic;
+}
+
 .enter-name {
 clear: both;
 display: block;
