@@ -621,23 +621,18 @@ Cmd.prototype.wear = function(s, r) {
 	});
 }
 
-Cmd.prototype.remove = function(r, s) {
-	if (r.msg !== '') {
-		Character.checkEquipment(r, s, function(fnd, item) {
-			if (fnd) {
-				Character.remove(r, s, item, function(removeSuccess, msg) {
-					s.emit('msg', {msg: msg, styleClass: 'cmd-wear'});
-					return Character.prompt(s);
-				});
-			} else {
-				s.emit('msg', {msg: 'You are not wearing that.', styleClass: 'error'});
+Cmd.prototype.remove = function(s, r) {
+	Character.checkEquipment(s, r.params.target, function(found, item) {
+		if (found) {
+			Character.remove(s, item, function(removeSuccess, msg) {
+				s.emit('msg', {msg: msg, styleClass: 'cmd-wear'});
 				return Character.prompt(s);
-			}
-		});
-	} else {
-		s.emit('msg', {msg: 'Remove what?', styleClass: 'error'});
-		return Character.prompt(s);
-	}
+			});
+		} else {
+			s.emit('msg', {msg: 'You are not wearing that.', styleClass: 'error'});
+			return Character.prompt(s);
+		}
+	});
 }
 
 /**

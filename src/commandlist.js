@@ -17,7 +17,8 @@ cmd.addCommand(/^(wear|drop|remove|get|take|pick up|leave|put down|equip)$/i, cm
 
 cmd.addCommand(/^(?:get|take|pick up) +(?:(?:the|a|an) +)?(.+)$/i, cmd.get, ["target"]);
 cmd.addCommand(/^(?:drop|leave|put down) +(?:(?:the|a|an) +)?(.+)$/i, cmd.drop, ["target"]);
-cmd.addCommand(/^(?:wear|equip) +(?:(?:the|a|an) +)?(.+)$/i, cmd.wear, ["target"]);
+cmd.addCommand(/^(?:wear|wield|equip|eq) +(?:(?:the|a|an) +)?(.+)$/i, cmd.wear, ["target"]);
+cmd.addCommand(/^(?:remove|unequip|dequip|de) +(?:(?:the|a|an) +)?(.+)$/i, cmd.remove, ["target"]);
 cmd.addCommand(/^i(nventory)?$/i, cmd.inventory);
 cmd.addCommand(/^eq(uipment)?$/i, cmd.equipment);
 

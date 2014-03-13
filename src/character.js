@@ -747,20 +747,18 @@ Character.prototype.wear = function(s, item, fn) {
 	return fn(false, 'You must remove gear to have room for that item.');
 }
 
-Character.prototype.remove = function(r, s, item, fn) {
-	var bodyAreas = Object.keys(s.player.eq),
-		i = 0,
-		j = 0;
+Character.prototype.remove = function( s, item, fn) {
+	var i = 0;
 
-	for (i; i < s.player.eq[item.slot].length; i++) {
-		if(s.player.eq[item.slot][i].item == item) {
-			this.addToInventory(s, s.player.eq[item.slot][i].item);
-			s.player.eq[item.slot].splice(i, 1);
+	for (i; i < s.player.eq.length; i++) {
+		if(s.player.eq[i].item == item) {
+			this.addToInventory(s, s.player.eq[i].item);
+			s.player.eq[i].item = null;
 			switch(item.itemType) {
 				case 'weapon':
-					return fn(true, 'You no longer wield a ' + item.short + ' in your ' + s.player.eq[bodyAreas[i]][j].name);
+					return fn(true, 'You no longer wield a ' + item.short + ' in your ' + s.player.eq[i].name);
 				case 'armor':
-					return fn(true, 'You removed a ' + item.short + ' from your ' + s.player.eq[bodyAreas[i]][j].name);
+					return fn(true, 'You removed a ' + item.short + ' from your ' + s.player.eq[i].name);
 			}
 		}
 	}
@@ -768,18 +766,13 @@ Character.prototype.remove = function(r, s, item, fn) {
 }
 
 // boolean if item with the same vnum is in a players equipment
-Character.prototype.checkEquipment = function(r, s, fn) {
-	var i = 0,
-		slotidx = 0,
-		bodyAreas = Object.keys(s.player.eq),
-		msgPatt = new RegExp('\\b' + r.msg, 'i');
-
-	for (slotidx; slotidx < bodyAreas.length; slot++) {
-		for (i; i < s.player.eq[bodyAreas[slotidx]].length; i++) {
-			if (msgPatt.test(s.player.eq[bodyAreas[slotidx]][i].item.name)) {
-				return fn(true, s.player.eq[bodyAreas[slotidx]][i].item);
-			}
-		}
+Character.prototype.checkEquipment = function(s, itemName, fn) {
+	var pattern = new RegExp('\\b' + itemName, 'i'),
+		eqs = s.player.eq.slice(0).filter(function(slot){
+			return slot.item != null && pattern.test(slot.item.name);
+		});
+	if(eqs.length > 0) {
+		return fn(true, eqs.shift().item);
 	}
 	return fn(false);
 }
