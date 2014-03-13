@@ -47,7 +47,7 @@ Character.prototype.load = function(s, name, fn) {
 		if (err) {
 			throw err;
 		}
-		
+
 		s.player = JSON.parse(r);
 
 		s.player.filename = name;
@@ -65,7 +65,7 @@ Character.prototype.hashPassword = function(salt, password, iterations, fn) {
 		hash = crypto.createHmac('sha512', salt).update(hash).digest('hex');
 	} 
 			
-	return fn(hash);	
+	return fn(hash);
 };
 
 Character.prototype.generateSalt = function(fn) {
