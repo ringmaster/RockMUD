@@ -18,16 +18,16 @@ var Character = function () {
 
 }
 
-Character.prototype.login = function(r, s, fn) {
-	var name = r.msg.replace(/_.*/,'').toLowerCase();
-	
-	if (r.msg.length > 3 ) {
-		if  (/^[a-z]+$/g.test(r.msg) === true && /[`~@#$%^&*()-+={}[]|]+$/g.test(r.msg) === false) {
+Character.prototype.exists = function(s, name, fn) {
+	name = name.replace(/_.*/,'').toLowerCase();
+
+	if (name.length > 3 ) {
+		if (/^[a-z]+$/.test(name) === true) {
 			fs.stat('./players/' + name + '.json', function (err, stat) {
 				if (err === null) {
-					return fn(name, s, true);
+					return fn(s, name, true);
 				} else {
-					return fn(name, s, false);
+					return fn(s, name, false);
 				}
 			});
 		} else {
@@ -42,7 +42,7 @@ Character.prototype.login = function(r, s, fn) {
 	}
 }
 
-Character.prototype.load = function(name, s, fn) {
+Character.prototype.load = function(s, name, fn) {
 	fs.readFile('./players/'  + name + '.json', function (err, r) {
 		if (err) {
 			throw err;
@@ -50,14 +50,9 @@ Character.prototype.load = function(name, s, fn) {
 		
 		s.player = JSON.parse(r);
 
-		s.player.name = s.player.name.charAt(0).toUpperCase() + s.player.name.slice(1);
-
-		if (s.player.lastname !== '') {
-			s.player.lastname = s.player.lastname = s.player.lastname.charAt(0).toUpperCase() + s.player.lastname.slice(1);
-		}
-
+		s.player.filename = name;
 		s.player.sid = s.id;
-		
+
 		return fn(s);
 	});
 }
@@ -91,32 +86,7 @@ Character.prototype.getPassword = function(s, fn) {
 		if (r.msg.length > 7) {
 			character.hashPassword(s.player.salt, r.msg, 1000, function(hash) {
 				if (s.player.password === hash) {
-					character.addPlayer(s, function(added, msg) {
-						if (added) {
-							Room.checkArea(s.player.area, function(fnd) {
-								if (!fnd) {
-									Room.getArea(s.player.area, function(area) {
-										areas.push(area);
-									});
-								}
-							});
-						
-							character.motd(s, function() {		
-								Room.getRoom(s, function() {
-				  					fn(s);
-									return character.prompt(s);
-								});
-							});
-						} else {
-							if (msg === undefined) {
-								s.emit('msg', {msg: 'Error logging in, please retry.'});
-								return s.disconnect();
-							} else {
-								s.emit('msg', {msg: msg});
-								s.emit('msg', {msg : 'Enter your name:', res: 'login', styleClass: 'enter-name'});
-							}
-						}
-					});
+					return fn(s);
 				} else {
 					s.emit('msg', {msg: 'Wrong! You are flagged after 5 incorrect responses.', res: 'enterPassword'});
 					return s.emit('msg', {msg: 'What is your password: ', res: 'enterPassword'});
@@ -125,6 +95,18 @@ Character.prototype.getPassword = function(s, fn) {
 		} else {
 			s.emit('msg', {msg: 'Password had to be over eight characters.', res: 'enterPassword'});
 			return s.emit('msg', {msg: 'What is your password: ', res: 'enterPassword'});
+		}
+	});
+}
+
+Character.prototype.validateToken = function(s, token, fn) {
+	var character = this;
+
+	character.hashPassword(s.player.salt, token, 1000, function(hash) {
+		if (s.player.token === hash) {
+			return fn(s);
+		} else {
+			return s.emit('msg', {msg : 'Enter your name:', res: 'login', styleClass: 'enter-name'});
 		}
 	});
 }
@@ -158,6 +140,54 @@ Character.prototype.addPlayer = function(s, fn) {
 
 		return fn(true);
 	}
+}
+
+/**
+ * Player is authenticated, process login
+ * @param r
+ * @param s
+ * @param fn
+ */
+Character.prototype.login = function(s, fn) {
+	var character = this;
+
+	character.addPlayer(s, function(added, msg) {
+		if (added) {
+			Room.checkArea(s.player.area, function(fnd) {
+				if (!fnd) {
+					Room.getArea(s.player.area, function(area) {
+						areas.push(area);
+					});
+				}
+			});
+
+			character.motd(s, function() {
+				Room.getRoom(s, function() {
+					fn(s);
+					return character.prompt(s);
+				});
+			});
+
+			character.generateSalt(function(privToken){
+				character.hashPassword(s.player.salt, privToken, 1000, function(hash) {
+					s.player.token = hash;
+					character.save(s, function(){
+						s.emit('token', {user: s.player.name, token: privToken});
+					})
+				});
+			});
+
+		} else {
+			if (msg === undefined) {
+				s.emit('msg', {msg: 'Error logging in, please retry.'});
+				return s.disconnect();
+			} else {
+				s.emit('msg', {msg: msg});
+				s.emit('msg', {msg : 'Enter your name:', res: 'login', styleClass: 'enter-name'});
+			}
+		}
+	});
+
 }
 
 //  A New Character is saved
@@ -497,7 +527,7 @@ Character.prototype.classSelection = function(r, fn) {
 	return fn(false)
 }
 
-Character.prototype.motd = function(s, fn) {	
+Character.prototype.motd = function(s, fn) {
 	fs.readFile('./motd.json', function (err, data) {
 		if (err) {
 			throw err;
@@ -514,7 +544,7 @@ Character.prototype.save = function(s, fn) {
 	if (s.player !== undefined) {
 		s.player.saved = new Date().toString();
 	
-		fs.writeFile('./players/' + s.player.name.toLowerCase() + '.json', JSON.stringify(s.player, null, 4), function (err) {
+		fs.writeFile('./players/' + s.player.filename + '.json', JSON.stringify(s.player, null, 4), function (err) {
 			if (err) {
 				return s.emit('msg', {msg: 'Error saving character.'});
 			} else {

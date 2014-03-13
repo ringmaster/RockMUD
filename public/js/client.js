@@ -131,7 +131,32 @@ require(
 				node.focus();
 
 				win.scrollIntoView(query('#bottom')[0]);
-			});
+			}),
+
+			writeCookie = function (name, value, days) {
+				if (days) {
+					var date = new Date();
+					date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+					var expires = "; expires=" + date.toGMTString();
+				}
+				else var expires = "";
+				document.cookie = name + "=" + value + expires + "; path=/";
+			},
+
+			readCookie = function (name) {
+				var nameEQ = name + "=";
+				var ca = document.cookie.split(';');
+				for (var i = 0; i < ca.length; i++) {
+					var c = ca[i];
+					while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+					if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+				}
+				return null;
+			},
+
+			eraseCookie = function (name) {
+				createCookie(name, "", -1);
+			};
 
 			query('body').on('click', function(evt) {
 				query('#cmd')[0].focus();
@@ -144,6 +169,17 @@ require(
 			});
 
 			query('#cmd')[0].focus();
+
+			ws.on('auth', function(r) {
+				var token = readCookie('logintoken'),
+					user = readCookie('loginuser');
+				if(token && user) {
+					ws.emit('auth', {user: user, token: token});
+				}
+				else {
+					ws.emit('auth', {user: '', token: ''});
+				}
+			});
 
 			ws.on('msg', function(r) {
 				display(r);
@@ -175,6 +211,12 @@ require(
 					changeMudState(r.res);
 				}
 			});
+
+			ws.on('token', function(r) {
+				writeCookie('loginuser', r.user, 30);
+				writeCookie('logintoken', r.token, 30);
+			});
+
 		});
 	}
 );

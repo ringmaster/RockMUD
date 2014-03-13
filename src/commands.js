@@ -199,6 +199,7 @@ Cmd.prototype.get = function(s, r) {
 }
 
 /**
+/**
  * Drop an item
  * @param s
  * @param r
@@ -647,6 +648,21 @@ Cmd.prototype.score = function(s) {
 	s.emit('msg', {msg: score, element: 'section', styleClass: 'score' });
 	
 	return Character.prompt(s);
+}
+
+Cmd.prototype.quit = function(s, r) {
+	Character.save(s, function() {
+		s.emit('token', {user: '', token: ''});
+
+		s.emit('msg', {
+			msg: 'Add a little to a little and there will be a big pile.',
+			emit: 'disconnect',
+			styleClass: 'logout-msg'
+		});
+
+		s.leave('mud');
+		s.disconnect();
+	});
 }
 
 /**
