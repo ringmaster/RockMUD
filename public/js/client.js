@@ -167,7 +167,7 @@ require(
 				cprompt += '<span class="tmv">/' + r.mv + '</span></span>  ';
 				cprompt += '<span class="room">Room: ' + r.room + '</span>  ';
 				cprompt += '<span class="wait">Wait: ' + r.wait + '</span>  ';
-				cprompt += '&gt; </div>';
+				cprompt += '</div>';
 				terminal.innerHTML += cprompt;
 				win.scrollIntoView(query('#bottom')[0]);
 
