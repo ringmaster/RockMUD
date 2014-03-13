@@ -36,5 +36,5 @@ cmd.addCommand(/^(?:say |")([^"].*)$/i, cmd.say, ["speech"]);
 cmd.addCommand(/^(?:yell |!)(.+)$/i, cmd.yell, ["speech"]);
 cmd.addCommand(/^(?:emote |:)(.+)$/i, cmd.emote, ["speech"]);
 cmd.addCommand(/^chat (.+)$/i, cmd.chat, ["speech"]);
-cmd.addCommand(/^(?:wall |achat |""")(.+)$/i, cmd.achat, ["speech"]);
+cmd.addCommand(/^(?:wall(?op) |achat |""")(.+)$/i, cmd.achat, ["speech"]);
 

@@ -44,15 +44,15 @@ Room.prototype.getRoom = function(s, fn) {
 		var i = 0,
 		roomStr = '';
 
-		for (i; i < rooms.length; i += 1) {	
-			if (rooms[i].id === s.player.roomid) {								
+		for (i; i < rooms.length; i += 1) {
+			if (rooms[i].id === s.player.roomid) {
 				room.getExits(rooms[i], function(exits) {
 					room.getPlayers(s, rooms[i], function(playersInRoom) {
-						room.getItems(rooms[i], {specific: 'short'}, function(items) {	
-							room.getMonsters(rooms[i], {specific: 'short'}, function(monsters) {							
+						room.getItems(rooms[i], {specific: 'short'}, function(items) {
+							room.getMonsters(rooms[i], {specific: 'short'}, function(monsters) {
 								if (exits.length > 0) {
 								 	roomStr += '<li class="room-exits">Visible Exits: ' + 
-								 	exits.toString().replace(/,/g, ', ') + '</li>';
+								 	exits.join(', ') + '</li>';
 								} else {
 									roomStr += '<li class="room-exits">Visible Exits: None!</li>';
 								}
@@ -300,6 +300,15 @@ Room.prototype.checkItem = function(s, name, fn) {
 	});
 };
 
+/**
+ * Turn a monster into its corpse
+ * @todo Specify a "corpse" property in the monster definition.  Each turns into a generic corpse of a type, like
+ * animal, humanoid, etc.  This way, as a bonus, some monsters could even turn into a new monster when killed.
+ * @param s
+ * @param monster
+ * @param fn
+ * @returns {*}
+ */
 Room.prototype.addCorpse = function(s, monster, fn) {
 	this.getRoomObject({
 		area: s.player.area,
@@ -389,7 +398,7 @@ Room.prototype.msgToArea = function(msgOpt, exclude, fn) {
 	var i = 0,
 	s;
 
-	for (i; i < players.length; i += 1) {				
+	for (i; i < players.length; i++) {
 		s = io.sockets.socket(players[i].sid);
 		if (exclude === undefined || exclude === true) {
 			if (s.player.name !== msgOpt.playerName && s.player.area === msgOpt.area) {
