@@ -360,7 +360,7 @@ Room.prototype.msgToRoom = function(msgOpt, exclude, fn) {
 	var i = 0,
 	s;
 
-	for (i; i < players.length; i += 1) {				
+	for (i; i < players.length; i += 1) {
 		s = io.sockets.socket(players[i].sid);
 		if (exclude === undefined || exclude === true) {
 			if (s.player.name !== msgOpt.playerName && s.player.roomid === msgOpt.roomid) {
