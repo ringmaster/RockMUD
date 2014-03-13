@@ -353,7 +353,6 @@ Cmd.prototype.where = function(r, s) {
  */
 Cmd.prototype.say = function(s, r) {
 	var speech = r.params.speech;
-
 	speech = speech.replace(/[<>'"&]/g, function(v){return '&#' + v.charCodeAt(0) + ';';}); // Fast dirty htmlEncode
 
 	s.emit('msg', {msg: 'You say> ' + speech, styleClass: 'cmd-say'});
@@ -371,39 +370,53 @@ Cmd.prototype.say = function(s, r) {
  * @param r
  */
 Cmd.prototype.emote = function(s, r) {
-	s.emit('msg', {msg: s.player.name + ' (you) ' + r.params.speech, styleClass: 'cmd-emote'});
+	var speech = r.params.speech;
+	speech = speech.replace(/[<>'"&]/g, function(v){return '&#' + v.charCodeAt(0) + ';';}); // Fast dirty htmlEncode
+
+	s.emit('msg', {msg: s.player.name + ' (you) ' + speech, styleClass: 'cmd-emote'});
 
 	Room.msgToRoom({
-		msg: s.player.name + r.params.speech,
+		msg: s.player.name + ' ' + speech,
 		playerName: s.player.name,
 		roomid: s.player.roomid,
 		styleClass: 'cmd-emote'
 	}, true);
 };
 
-Cmd.prototype.yell = function(r, s) {
-	var i  = 0;
-	
-	s.emit('msg', {msg: 'You yell> ' + r.msg, styleClass: 'cmd-say'});
+/**
+ * Yell to other players in the room
+ * @param s
+ * @param r
+ */
+Cmd.prototype.yell = function(s, r) {
+	var speech = r.params.speech;
+	speech = speech.replace(/[<>'"&]/g, function(v){return '&#' + v.charCodeAt(0) + ';';}); // Fast dirty htmlEncode
+
+	s.emit('msg', {msg: 'You yell> ' + speech, styleClass: 'cmd-say cmd-yell'});
 	
 	Room.msgToArea({
-		msg: s.player.name + ' yells> ' + r.msg +  '.',
-		playerName: s.player.name
+		msg: s.player.name + ' yells> ' + speech +  '.',
+		playerName: s.player.name, styleClass: 'cmd-say cmd-yell'
 	}, true);
 };
 
-
-Cmd.prototype.chat = function(r, s) {
-	var msg = r.msg;
+/**
+ * Chat with players in broadcast
+ * @param s
+ * @param r
+ */
+Cmd.prototype.chat = function(s, r) {
+	var speech = r.params.speech;
+	speech = speech.replace(/[<>'"&]/g, function(v){return '&#' + v.charCodeAt(0) + ';';}); // Fast dirty htmlEncode
 
 	s.emit('msg', {
-		msg: 'You chat> ' + msg,
+		msg: 'You chat> ' + speech,
 		element: 'blockquote',
 		styleClass: 'msg'
 	});
 
 	s.in('mud').broadcast.emit('msg', {
-		msg: s.player.name + '> ' + msg,
+		msg: s.player.name + '> ' + speech,
 		element: 'blockquote',
 		styleClass: 'chatmsg'
 	});
@@ -443,30 +456,36 @@ Cmd.prototype.reply = function(r, s) {
 };
 */
 
-Cmd.prototype.achat = function(r, s) { 
-	var msg = r.msg;
+/**
+ * Broadcast a message to all players as an admin
+ * @param s
+ * @param r
+ * @returns {*}
+ */
+Cmd.prototype.achat = function(s, r) {
+	var speech = r.params.speech;
+	speech = speech.replace(/[<>'"&]/g, function(v){return '&#' + v.charCodeAt(0) + ';';}); // Fast dirty htmlEncode
 
 	if (s.player.role === 'admin') {
 		s.emit('msg', {
-			msg: 'You achat> ' + msg,
+			msg: 'You achat> ' + speech,
 			element: 'blockquote',
 			styleClass: 'adminmsg'
 		});
 
 		s.in('mud').broadcast.emit('msg', {
-			msg: s.player.name + ' the Admin> ' + msg,
+			msg: s.player.name + ' the Admin> ' + speech,
 			element: 'blockquote',
 			styleClass: 'adminmsg'
 		});
 	} else {
-		r.msg = 'You do not have permission to execute this command.';
-		s.emit('msg', r);		
+		s.emit('msg', {msg: 'You do not have permission to execute this command.'});
 		return Character.prompt(s);
 	}
 };
 
 // Viewing the time
-Cmd.prototype.time = function(r, s) {
+Cmd.prototype.time = function(s, r) {
 
 }
 
@@ -483,10 +502,16 @@ Cmd.prototype.save = function(s) {
 	});
 }
 
-Cmd.prototype.title = function(r, s) {
-	if (r.msg.length < 40) {
-		if (r.msg != 'title') {
-			s.player.title = r.msg;
+/**
+ * Change the character's title
+ * @param s
+ * @param r
+ * @returns {*}
+ */
+Cmd.prototype.title = function(s, r) {
+	if (r.params.title.length < 40) {
+		if (r.params.title != 'title') {
+			s.player.title = r.params.title;
 		} else {
 			s.player.title = 'a level ' + s.player.level + ' ' + s.player.race + ' ' + s.player.charClass;
 		}
@@ -496,7 +521,7 @@ Cmd.prototype.title = function(r, s) {
 			return Character.prompt(s);
 		});
 	} else {
-		s.emit('msg', {msg: 'Not a valid title.', styleClass: 'save'});
+		s.emit('msg', {msg: 'That title is too long.', styleClass: 'save'});
 		return Character.prompt(s);
 	}
 }
@@ -538,8 +563,12 @@ Cmd.prototype.equipment = function(s) {
 	return Character.prompt(s);
 }
 
-// Current skills
-Cmd.prototype.skills = function(r, s) {
+/**
+ * List the player's skills
+ * @param s
+ * @returns {*}
+ */
+Cmd.prototype.skills = function(s) {
 	var skills = '',
 	i = 0;
 	
@@ -617,6 +646,11 @@ Cmd.prototype.inventory = function(s) {
 	return Character.prompt(s);
 }
 
+/**
+ * Display character stats
+ * @param s
+ * @returns {*}
+ */
 Cmd.prototype.score = function(s) {
 	var i = 0,
 	score = '<div class="score-name">' + s.player.name + 

@@ -20,11 +20,18 @@ cmd.addCommand(/^eq(uipment)?$/i, cmd.equipment);
 
 cmd.addCommand(/^restore$/i, cmd.restore);
 cmd.addCommand(/^save$/i, cmd.save);
-cmd.addCommand(/^score$/i, cmd.score);
+cmd.addCommand(/^(score|stats)$/i, cmd.score);
+cmd.addCommand(/^skills$/i, cmd.skills);
 cmd.addCommand(/^quit$/i, cmd.quit);
 
 cmd.addCommand(/^kill (.+)$/i, cmd.kill, ["target"]);
 
-cmd.addCommand(/^(?:say |")(.+)$/i, cmd.say, ["speech"]);
+cmd.addCommand(/^(title)$/i, cmd.title, ["title"]);
+cmd.addCommand(/^title (.+)$/i, cmd.title, ["title"]);
+
+cmd.addCommand(/^(?:say |")([^"].*)$/i, cmd.say, ["speech"]);
+cmd.addCommand(/^(?:yell |!)(.+)$/i, cmd.yell, ["speech"]);
 cmd.addCommand(/^(?:emote |:)(.+)$/i, cmd.emote, ["speech"]);
+cmd.addCommand(/^chat (.+)$/i, cmd.chat, ["speech"]);
+cmd.addCommand(/^(?:wall |achat |""")(.+)$/i, cmd.achat, ["speech"]);
 
