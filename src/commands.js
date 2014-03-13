@@ -561,18 +561,19 @@ Cmd.prototype.equipment = function(s) {
 	i = 0;
 
 	for (i; i < s.player.eq.length; i += 1) {
-		eqStr += '<li class="slot-' + s.player.eq[i].slot.replace(/ /g, '') + 
-			'">' + s.player.eq[i].name + ': ';
+		eqStr += '<tr class="slot-' + s.player.eq[i].slot.replace(/ /g, '') +
+			'"><th>' + s.player.eq[i].name + '</th>';
 		
 		if (s.player.eq[i].item === null || s.player.eq[i].item === '') {
-			eqStr += ' Nothing</li>';
+			eqStr += '<td>--</td>';
 		} else {
-			eqStr += '<strong>'  + s.player.eq[i].item.short + '</strong></li>';
+			eqStr += '<td>'  + s.player.eq[i].item.short + '</td>';
 		}
+		eqStr += '</tr>';
 	}
 	
 	s.emit('msg', {
-		msg: '<h3>You are wearing:</h3><ul class="equipment-list">' + eqStr + '</ul>',
+		msg: '<h3>You are wearing:</h3><table class="equipment-list">' + eqStr + '</table>',
 		styleClass: 'cmd-eq' 
 	});
 	

@@ -384,3 +384,14 @@ color: #ffff00;
 .bold {
 	font-weight: bold;
 }
+
+.equipment-list th {
+    text-align: right;
+    padding: 0px 10px;
+}
+.equipment-list tr:nth-child(2n) {
+    background-color: #111;
+}
+.equipment-list td {
+    padding: 0px 10px;
+}
