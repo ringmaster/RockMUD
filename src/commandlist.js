@@ -1,6 +1,7 @@
 "use strict";
 
-var cmd = require('./commands').cmd;
+var cmd = require('./commands').cmd,
+	skill = require('./skills').skill;
 
 cmd.addCommand(/^(?:help|\?)(?:\s+(.*))?$/i, cmd.help, ["topic"]);
 
@@ -26,6 +27,7 @@ cmd.addCommand(/^skills$/i, cmd.skills);
 cmd.addCommand(/^quit$/i, cmd.quit);
 
 cmd.addCommand(/^kill (.+)$/i, cmd.kill, ["target"]);
+cmd.addCommand(/^bash$/i, skill.bash);
 
 cmd.addCommand(/^(title)$/i, cmd.title, ["title"]);
 cmd.addCommand(/^title (.+)$/i, cmd.title, ["title"]);
