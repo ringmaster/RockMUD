@@ -44,6 +44,15 @@ require(
 				slist: 'skills'
 			},
 
+			htmlEncode = function (value) {
+				var el = document.createElement('div');
+				if (value) {
+					el.innerText = el.textContent = value;
+					return el.innerHTML;
+				}
+				return value;
+			},
+
 			display = function(r) {
 				var msg = r.msg;
 				if (r.emit == 'password') {
@@ -122,7 +131,8 @@ require(
 			frmH = on(dom.byId('console'), 'submit', function (e) {
 				var node = dom.byId('cmd'),
 				msg = string.trim(node.value);
-			
+				msg = htmlEncode(msg);
+
 				e.preventDefault();
 
 				displayCmd(msg);

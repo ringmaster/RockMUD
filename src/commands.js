@@ -352,7 +352,11 @@ Cmd.prototype.where = function(r, s) {
  * @param r
  */
 Cmd.prototype.say = function(s, r) {
-	s.emit('msg', {msg: 'You say> ' + r.params.speech, styleClass: 'cmd-say'});
+	var speech = r.params.speech;
+
+	speech = speech.replace(/[<>'"&]/g, function(v){return '&#' + v.charCodeAt(0) + ';';}); // Fast dirty htmlEncode
+
+	s.emit('msg', {msg: 'You say> ' + speech, styleClass: 'cmd-say'});
 	
 	Room.msgToRoom({
 		msg: s.player.name + ' says> ' + r.params.speech,
@@ -650,7 +654,11 @@ Cmd.prototype.score = function(s) {
 	return Character.prompt(s);
 }
 
-Cmd.prototype.quit = function(s, r) {
+/**
+ * Quit the game
+ * @param Socket s
+ */
+Cmd.prototype.quit = function(s) {
 	Character.save(s, function() {
 		s.emit('token', {user: '', token: ''});
 
