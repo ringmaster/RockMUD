@@ -231,7 +231,11 @@ Cmd.prototype.drop = function(s, r) {
 }
 
 
-// For attacking in-game monsters
+/**
+ * For attacking in-game monsters
+ * @param s
+ * @param r
+ */
 Cmd.prototype.kill = function(s, r) {
 	Room.checkMonster(s, r.params.target, function(found, monster) {
 		if (found) {
@@ -330,16 +334,19 @@ Cmd.prototype.lookAt = function(s, r) {
 	});
 }
 
-Cmd.prototype.where = function(r, s) {
-	r.msg = '<ul>' + 
-	'<li>Your Name: ' + Character[s.id].name + '</li>' +
-	'<li>Current Area: ' + Character[s.id].area + '</li>' +
-	'<li>Room Number: ' + Character[s.id].id + '</li>'  +
-	'</ul>';	
+/**
+ * Provide some information about the current location
+ * @param s
+ * @returns {*}
+ */
+Cmd.prototype.where = function(s) {
+	var msg = '<ul>' +
+	'<li>Your Name: ' + s.player.name + '</li>' +
+	'<li>Current Area: ' + s.player.area + '</li>' +
+	'<li>Room Number: ' + s.player.roomid + '</li>'  +
+	'</ul>';
 
-	r.styleClass = 'playerinfo where';
-	
-	s.emit('msg', r);
+	s.emit('msg', {msg: msg, styleClass: 'playerinfo where'});
 	return Character.prompt(s);
 };
 

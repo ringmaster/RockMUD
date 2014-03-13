@@ -9,6 +9,7 @@ cmd.addCommand(/^l(?:ook)?\s+(?:at\s+)?(.+)?$/i, cmd.lookAt, ["target"]);
 
 cmd.addCommand(/^(?:move|go)\s+(.+)$/i, cmd.move, ["direction"]);
 cmd.addCommand(/^(north|east|south|west|up|down|enter|exit)$/i, cmd.move, ["direction"]);
+cmd.addCommand(/^where$/i, cmd.where);
 
 cmd.addCommand(/^who$/i, cmd.who);
 
