@@ -222,23 +222,33 @@ Cmd.prototype.get = function(s, r) {
  * @returns {*}
  */
 Cmd.prototype.drop = function(s, r) {
-	Character.checkInventory(s, r.params.target, function(fnd, item) {
-		if (fnd) {
-			Character.removeFromInventory(s, item, function(removed) {
-				if (removed) {
-					Room.addItem({area: s.player.area, id: s.player.roomid}, item, function() {
-						s.emit('msg', {
-							msg: 'You dropped ' + item.short,
-							styleClass: 'get'
-						});
-
-						return Character.prompt(s);
+	var doDrop = function(s, item) {
+		Character.removeFromInventory(s, item, function(removed) {
+			if (removed) {
+				Room.addItem({area: s.player.area, id: s.player.roomid}, item, function() {
+					s.emit('msg', {
+						msg: 'You dropped ' + item.short,
+						styleClass: 'get'
 					});
-				} else {
-					s.emit('msg', {msg: 'Could not drop a ' + item.short, styleClass: 'error'});
 					return Character.prompt(s);
-				}
-			});
+				});
+			} else {
+				s.emit('msg', {msg: 'Could not drop a ' + item.short, styleClass: 'error'});
+				return Character.prompt(s);
+			}
+		});
+	};
+	Character.checkInventory(s, r.params.target, function(found, item) {
+		if (found) {
+			if(item.equipped) {
+				Character.remove(s, item, function(removeSuccess, msg) {
+					s.emit('msg', {msg: msg, styleClass: 'cmd-wear'});
+					doDrop(s, item);
+				});
+			}
+			else {
+				doDrop(s, item);
+			}
 		} else {
 			s.emit('msg', {msg: "You are not carrying that item.", styleClass: 'error'});
 			return Character.prompt(s);
@@ -648,7 +658,11 @@ Cmd.prototype.inventory = function(s) {
 	
 	if (s.player.items.length > 0) {
 		for (i; i < s.player.items.length; i += 1) {
-			iStr += '<li>' + s.player.items[i].short + '</li>';
+			if (!s.player.items[i].equipped) {
+				iStr += '<li>' + s.player.items[i].short + '</li>';
+			} else {
+				iStr += '<li>' + s.player.items[i].short + ' (Equipped) </li>';
+			}		
 		}
 		
 		s.emit('msg', {msg: '<ul>' + iStr + '</ul>', styleClass: 'inventory' });

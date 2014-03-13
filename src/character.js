@@ -699,50 +699,50 @@ Character.prototype.removeFromInventory = function(s, itemObj, fn) {
 }
 
 Character.prototype.wear = function(s, item, fn) {
-	var bodyAreas = Object.keys(s.player.eq),
-	i = 0;
+	var i = 0,
+	replacedItem;
 
-	for (i; i < s.player.eq.length; i += 1) {	
-		if (item.slot === s.player.eq[i].slot) {
+	for (i; i < s.player.eq.length; i++) {
+		if (item.slot === s.player.eq[i].slot && item.equipped === false) {
 			if (item.itemType === 'weapon') {
+				item.equipped = true;
+				 
 				// Wielding weapons
 				if (item.weight < (20 + s.player.str)) { // Dual check
 
 				}
 
 				if (s.player.eq[i].dual === false && s.player.eq[i].item === null) {
-					this.removeFromInventory(s, item);
-					//var place = j;
 					s.player.eq[i].item = item;
-					//j = s.player.eq[bodyAreas[i]].length + 1;
 
-					return fn(true, 'You wield a ' + item.short + ' in your ' + s.player.eq[i].name);
+					return fn(true, 'You wield ' + item.short + ' in your ' + s.player.eq[i].name);
 				}
 			} else {
 				// Wearing Armor
 				if (s.player.eq[i].item === null) {
-					this.removeFromInventory(s, item);
+					item.equipped = true;
 					s.player.eq[i].item = item;
 
 					s.player.ac = s.player.ac + item.ac;
 					
-					return fn(true, 'You wear a ' + item.short + ' on your ' + s.player.eq[i].name);
+					return fn(true, 'You wear ' + item.short + ' on your ' + s.player.eq[i].name);
 				} else {
-					this.removeFromInventory(s, item);
-					this.addToInventory(s, s.player.eq[i].item);
+					item.equipped = true;
+					s.player.eq[i].item.equipped = false;
 
-					s.player.ac = s.player.ac - s.player.eq[i].item.ac;
-
+					replacedItem = s.player.eq[i].item;
 					s.player.eq[i].item = item;
 
-					s.player.ac = s.player.ac + s.player.eq[i].item.ac
+					s.player.ac = s.player.ac - replacedItem.ac;
 
-					return fn(true, 'You wear ' + s.player.eq[i].item.short + ' on your ' + 
+					s.player.ac = s.player.ac + item.ac
+
+					return fn(true, 'You wear ' + item.short + ' on your ' + 
 						s.player.eq[i].name + ' and remove ' + 
-						s.player.eq[i].item.short);
+						replacedItem.short);
 				}
 			}
-		}
+		} 
 	}
 	return fn(false, 'You must remove gear to have room for that item.');
 }
@@ -752,14 +752,16 @@ Character.prototype.remove = function( s, item, fn) {
 
 	for (i; i < s.player.eq.length; i++) {
 		if(s.player.eq[i].item == item) {
-			this.addToInventory(s, s.player.eq[i].item);
-			s.player.eq[i].item = null;
-			switch(item.itemType) {
-				case 'weapon':
-					return fn(true, 'You no longer wield a ' + item.short + ' in your ' + s.player.eq[i].name);
-				case 'armor':
-					return fn(true, 'You removed a ' + item.short + ' from your ' + s.player.eq[i].name);
-			}
+			return this.checkInventory(s, s.player.eq[i].item.name, function(found, item) {
+				item.equipped = false; // Set item in inventory to be not equipped
+				s.player.eq[i].item = null; // Remove item from equipment list
+				switch(item.itemType) {
+					case 'weapon':
+						return fn(true, 'You no longer wield a ' + item.short + ' in your ' + s.player.eq[i].name);
+					case 'armor':
+						return fn(true, 'You removed a ' + item.short + ' from your ' + s.player.eq[i].name);
+				}
+			});
 		}
 	}
 	return fn(true, 'You are not wearing a ' + item.short + '.');
