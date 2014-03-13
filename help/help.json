@@ -1,6 +1,6 @@
 {
 	"name" : "Help",
-	"related" : ["Channels", "Races", "Movement"],
+	"related" : ["Channels", "Races", "Movement", "Items"],
 	"type" : "Help",
 	"levels" : "All",
 	"restrict": 0,

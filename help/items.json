@@ -1,0 +1,9 @@
+{
+	"name" : "Items",
+	"related" : ["Weapons", "Armor", "Get", "Wear", "Drop", "Remove"],
+	"type" : "Help",
+	"levels" : "All",
+	"restrict": 0,
+	"description" : "Items are things you find in the world and can interact with.  Some things you can pick up or use, others are scenery, still others are weapons or armor.",
+	"Alias" : ""
+}

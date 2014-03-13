@@ -10,7 +10,7 @@
 			var ws = io.connect(''),
 			terminal = dom.byId('terminal'),
 			/* Command aliases */
-			aliases = {	
+			aliases = {
 				n: 'north',
 				e: 'east',
 				w: 'west',
@@ -33,7 +33,16 @@
 				ooc: 'chat',
 				slist: 'skills'
 			},
-			movement = ['north', 'east', 'south', 'west'],
+
+			htmlEncode = function (value) {
+				var el = document.createElement('div');
+				if (value) {
+					el.innerText = el.textContent = value;
+					return el.innerHTML;
+				}
+				return value;
+			},
+
 			display = function(r) {
 				var msg = r.msg;
 				if (r.emit == 'password') {
@@ -63,46 +72,26 @@
 				else {
 					domAttr.set(dom.byId('cmd'), 'type', 'text');
 				}
-			},		
-			checkMovement = function(cmdStr, fn) {
-				if (movement.toString().indexOf(cmdStr) !== -1) {
-					return fn(true, 'move ' + cmdStr);
-				} else {
-					return fn(false, cmdStr);
-				}
 			},
-			checkAlias = function(cmdStr, fn) { 
-				var keys = Object.keys(aliases),
-				i = 0,
-				cmd,
-				msg,
-				cmdArr = cmdStr.split(' ');
 
-				cmd = cmdArr[0];
-				msg = cmdArr.slice(1).join(' ');
-	
-				for (i; i < keys.length; i += 1) {
-					if (keys[i] === cmd) {
-						if (msg === '') {
-							return fn(aliases[keys[i]]);
-						} else {
-							return fn(aliases[keys[i]] + ' ' + msg);
-						}
-					}	
+			replaceAliases = function(cmdStr) {
+				var keys = Object.keys(aliases),
+				i = 0;
+
+				for (i; i < keys.length; i++) {
+					if (keys[i] === cmdStr) {
+						return aliases[keys[i]];
+					}
 				}
 
-				return fn(cmd + ' ' + msg);	
+				return cmdStr;
 			},
 
 			displayCmd = function(msg) {
 				var node = dom.byId('cmd');
 
 				display({
-					msg : checkAlias(msg, function(cmd) {
-						return checkMovement(cmd, function(wasMov, cmd) {
-							return cmd;
-						});
-					}),
+					msg : replaceAliases(msg),
 					emit : (function () {
 						var res = domAttr.get(node, 'mud-state');
 
@@ -132,7 +121,8 @@
 			frmH = on(dom.byId('console'), 'submit', function (e) {
 				var node = dom.byId('cmd'),
 				msg = string.trim(node.value);
-			
+				msg = htmlEncode(msg);
+
 				e.preventDefault();
 
 				displayCmd(msg);
@@ -141,7 +131,32 @@
 				node.focus();
 
 				win.scrollIntoView(query('#bottom')[0]);
-			});
+			}),
+
+			writeCookie = function (name, value, days) {
+				if (days) {
+					var date = new Date();
+					date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+					var expires = "; expires=" + date.toGMTString();
+				}
+				else var expires = "";
+				document.cookie = name + "=" + value + expires + "; path=/";
+			},
+
+			readCookie = function (name) {
+				var nameEQ = name + "=";
+				var ca = document.cookie.split(';');
+				for (var i = 0; i < ca.length; i++) {
+					var c = ca[i];
+					while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+					if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+				}
+				return null;
+			},
+
+			eraseCookie = function (name) {
+				createCookie(name, "", -1);
+			};
 
 			query('body').on('click', function(evt) {
 				query('#cmd')[0].focus();
@@ -154,6 +169,17 @@
 			});
 
 			query('#cmd')[0].focus();
+
+			ws.on('auth', function(r) {
+				var token = readCookie('logintoken'),
+					user = readCookie('loginuser');
+				if(token && user) {
+					ws.emit('auth', {user: user, token: token});
+				}
+				else {
+					ws.emit('auth', {user: '', token: ''});
+				}
+			});
 
 			ws.on('msg', function(r) {
 				display(r);
@@ -177,7 +203,7 @@
 				cprompt += '<span class="tmv">/' + r.mv + '</span></span>  ';
 				cprompt += '<span class="room">Room: ' + r.room + '</span>  ';
 				cprompt += '<span class="wait">Wait: ' + r.wait + '</span>  ';
-				cprompt += '&gt; </div>';
+				cprompt += '</div>';
 				terminal.innerHTML += cprompt;
 				win.scrollIntoView(query('#bottom')[0]);
 
@@ -185,6 +211,12 @@
 					changeMudState(r.res);
 				}
 			});
+
+			ws.on('token', function(r) {
+				writeCookie('loginuser', r.user, 30);
+				writeCookie('logintoken', r.token, 30);
+			});
+
 		});
 	}
 );

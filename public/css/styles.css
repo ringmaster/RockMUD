@@ -234,6 +234,10 @@ margin-top: 5px;
 font-size: small;
 }
 
+.cmd-emote {
+font-style: italic;
+}
+
 .enter-name {
 clear: both;
 display: block;
@@ -257,9 +261,13 @@ margin: 0;
 
 .cprompt {
 font-weight: bold;
-color: #fff;
 border-bottom: 1px solid #333;
-padding: 0px 0px 5px;
+margin: 10px 0px;
+font-size: small;
+color: #333;
+}
+.cprompt .room {
+color: #333;
 }
 
 .error {

@@ -18,16 +18,16 @@ var Character = function () {
 
 }
 
-Character.prototype.login = function(r, s, fn) {
-	var name = r.msg.replace(/_.*/,'').toLowerCase();
-	
-	if (r.msg.length > 3 ) {
-		if  (/^[a-z]+$/g.test(r.msg) === true && /[`~@#$%^&*()-+={}[]|]+$/g.test(r.msg) === false) {
+Character.prototype.exists = function(s, name, fn) {
+	name = name.replace(/_.*/,'').toLowerCase();
+
+	if (name.length > 3 ) {
+		if (/^[a-z]+$/.test(name) === true) {
 			fs.stat('./players/' + name + '.json', function (err, stat) {
 				if (err === null) {
-					return fn(name, s, true);
+					return fn(s, name, true);
 				} else {
-					return fn(name, s, false);
+					return fn(s, name, false);
 				}
 			});
 		} else {
@@ -42,7 +42,7 @@ Character.prototype.login = function(r, s, fn) {
 	}
 }
 
-Character.prototype.load = function(name, s, fn) {
+Character.prototype.load = function(s, name, fn) {
 	fs.readFile('./players/'  + name + '.json', function (err, r) {
 		if (err) {
 			throw err;
@@ -50,14 +50,9 @@ Character.prototype.load = function(name, s, fn) {
 		
 		s.player = JSON.parse(r);
 
-		s.player.name = s.player.name.charAt(0).toUpperCase() + s.player.name.slice(1);
-
-		if (s.player.lastname !== '') {
-			s.player.lastname = s.player.lastname = s.player.lastname.charAt(0).toUpperCase() + s.player.lastname.slice(1);
-		}
-
+		s.player.filename = name;
 		s.player.sid = s.id;
-		
+
 		return fn(s);
 	});
 }
@@ -91,32 +86,7 @@ Character.prototype.getPassword = function(s, fn) {
 		if (r.msg.length > 7) {
 			character.hashPassword(s.player.salt, r.msg, 1000, function(hash) {
 				if (s.player.password === hash) {
-					character.addPlayer(s, function(added, msg) {
-						if (added) {
-							Room.checkArea(s.player.area, function(fnd) {
-								if (!fnd) {
-									Room.getArea(s.player.area, function(area) {
-										areas.push(area);
-									});
-								}
-							});
-						
-							character.motd(s, function() {		
-								Room.getRoom(s, function() {
-				  					fn(s);
-									return character.prompt(s);
-								});
-							});
-						} else {
-							if (msg === undefined) {
-								s.emit('msg', {msg: 'Error logging in, please retry.'});
-								return s.disconnect();
-							} else {
-								s.emit('msg', {msg: msg});
-								s.emit('msg', {msg : 'Enter your name:', res: 'login', styleClass: 'enter-name'});
-							}
-						}
-					});
+					return fn(s);
 				} else {
 					s.emit('msg', {msg: 'Wrong! You are flagged after 5 incorrect responses.', res: 'enterPassword'});
 					return s.emit('msg', {msg: 'What is your password: ', res: 'enterPassword'});
@@ -125,6 +95,18 @@ Character.prototype.getPassword = function(s, fn) {
 		} else {
 			s.emit('msg', {msg: 'Password had to be over eight characters.', res: 'enterPassword'});
 			return s.emit('msg', {msg: 'What is your password: ', res: 'enterPassword'});
+		}
+	});
+}
+
+Character.prototype.validateToken = function(s, token, fn) {
+	var character = this;
+
+	character.hashPassword(s.player.salt, token, 1000, function(hash) {
+		if (s.player.token === hash) {
+			return fn(s);
+		} else {
+			return s.emit('msg', {msg : 'Enter your name:', res: 'login', styleClass: 'enter-name'});
 		}
 	});
 }
@@ -158,6 +140,54 @@ Character.prototype.addPlayer = function(s, fn) {
 
 		return fn(true);
 	}
+}
+
+/**
+ * Player is authenticated, process login
+ * @param r
+ * @param s
+ * @param fn
+ */
+Character.prototype.login = function(s, fn) {
+	var character = this;
+
+	character.addPlayer(s, function(added, msg) {
+		if (added) {
+			Room.checkArea(s.player.area, function(fnd) {
+				if (!fnd) {
+					Room.getArea(s.player.area, function(area) {
+						areas.push(area);
+					});
+				}
+			});
+
+			character.motd(s, function() {
+				Room.getRoom(s, function() {
+					fn(s);
+					return character.prompt(s);
+				});
+			});
+
+			character.generateSalt(function(privToken){
+				character.hashPassword(s.player.salt, privToken, 1000, function(hash) {
+					s.player.token = hash;
+					character.save(s, function(){
+						s.emit('token', {user: s.player.name, token: privToken});
+					})
+				});
+			});
+
+		} else {
+			if (msg === undefined) {
+				s.emit('msg', {msg: 'Error logging in, please retry.'});
+				return s.disconnect();
+			} else {
+				s.emit('msg', {msg: msg});
+				s.emit('msg', {msg : 'Enter your name:', res: 'login', styleClass: 'enter-name'});
+			}
+		}
+	});
+
 }
 
 //  A New Character is saved
@@ -503,7 +533,7 @@ Character.prototype.classSelection = function(r, fn) {
 	return fn(false)
 }
 
-Character.prototype.motd = function(s, fn) {	
+Character.prototype.motd = function(s, fn) {
 	fs.readFile('./motd.json', function (err, data) {
 		if (err) {
 			throw err;
@@ -520,7 +550,7 @@ Character.prototype.save = function(s, fn) {
 	if (s.player !== undefined) {
 		s.player.saved = new Date().toString();
 	
-		fs.writeFile('./players/' + s.player.name.toLowerCase() + '.json', JSON.stringify(s.player, null, 4), function (err) {
+		fs.writeFile('./players/' + s.player.filename + '.json', JSON.stringify(s.player, null, 4), function (err) {
 			if (err) {
 				return s.emit('msg', {msg: 'Error saving character.'});
 			} else {
@@ -613,53 +643,64 @@ Character.prototype.thirst = function(s, fn) {
 	}
 }
 
-// boolean if item with the same vnum is in a players inventory
-Character.prototype.checkInventory = function(r, s, fn) {
+/**
+ * Callback with whether an item with the passed name is in the players inventory
+ * @param Socket s
+ * @param string itemname
+ * @param function fn(boolean found, object item)
+ * @returns {*}
+ */
+Character.prototype.checkInventory = function(s, itemname, fn) {
 	var i = 0,
-	msgPatt = new RegExp('^' + r.msg);
+		msgPattern = new RegExp('\\b' + itemname, 'i');
 	
 	if (s.player.items.length > 0) {
-		for (i; i < s.player.items.length; i += 1){
-			if (msgPatt.test(s.player.items[i].name.toLowerCase())) {
-				fn(true, s.player.items[i]);
-			} else if (i === s.player.items.length - 1) {
-				fn(false);
+		for (i; i < s.player.items.length; i++) {
+			if (msgPattern.test(s.player.items[i].name)) {
+				return fn(true, s.player.items[i]);
 			}
 		}
-	} else {
-		fn(false);
 	}
+	return fn(false);
 }
 
-// push an item into a players inventory, checks items to ensure a player can use it
+/**
+ * Push an item into this player's inventory
+ * @param Socket s
+ * @param Object item
+ * @param function fn(boolean success)
+ */
 Character.prototype.addToInventory = function(s, item, fn) {
 	s.player.items.push(item);
 	
-	fn(true);
+	if(typeof fn !== 'undefined') fn(true);
 }
 
+/**
+ * Remove an item from inventory
+ * @param Socket s
+ * @param Object itemObj
+ * @param function fn(boolean success)
+ * @returns {*}
+ */
 Character.prototype.removeFromInventory = function(s, itemObj, fn) {
-	var i = 0;
-
+	var removed = false;
 	if (s.player.items.length > 0) {
-		s.player.items = s.player.items.filter(function(item, i) {
+		s.player.items = s.player.items.filter(function(item) {
 			if (item.id !== itemObj.id) {
+				removed = true;
 				return true;
-			}		
+			}
 		});
-	
-		if (typeof fn === 'function') {
-			return fn(true);
-		}	
-	} else {
-		if (typeof fn === 'function') {
-			return fn(false);
-		}
+	}
+	if (typeof fn === 'function') {
+		return fn(removed);
 	}
 }
 
-Character.prototype.wear = function(r, s, item, fn) {
-	var i = 0;	
+Character.prototype.wear = function(s, item, fn) {
+	var bodyAreas = Object.keys(s.player.eq),
+	i = 0;
 
 	for (i; i < s.player.eq.length; i += 1) {	
 		if (item.slot === s.player.eq[i].slot) {
@@ -703,7 +744,45 @@ Character.prototype.wear = function(r, s, item, fn) {
 			}
 		}
 	}
-} 
+	return fn(false, 'You must remove gear to have room for that item.');
+}
+
+Character.prototype.remove = function(r, s, item, fn) {
+	var bodyAreas = Object.keys(s.player.eq),
+		i = 0,
+		j = 0;
+
+	for (i; i < s.player.eq[item.slot].length; i++) {
+		if(s.player.eq[item.slot][i].item == item) {
+			this.addToInventory(s, s.player.eq[item.slot][i].item);
+			s.player.eq[item.slot].splice(i, 1);
+			switch(item.itemType) {
+				case 'weapon':
+					return fn(true, 'You no longer wield a ' + item.short + ' in your ' + s.player.eq[bodyAreas[i]][j].name);
+				case 'armor':
+					return fn(true, 'You removed a ' + item.short + ' from your ' + s.player.eq[bodyAreas[i]][j].name);
+			}
+		}
+	}
+	return fn(true, 'You are not wearing a ' + item.short + '.');
+}
+
+// boolean if item with the same vnum is in a players equipment
+Character.prototype.checkEquipment = function(r, s, fn) {
+	var i = 0,
+		slotidx = 0,
+		bodyAreas = Object.keys(s.player.eq),
+		msgPatt = new RegExp('\\b' + r.msg, 'i');
+
+	for (slotidx; slotidx < bodyAreas.length; slot++) {
+		for (i; i < s.player.eq[bodyAreas[slotidx]].length; i++) {
+			if (msgPatt.test(s.player.eq[bodyAreas[slotidx]][i].item.name)) {
+				return fn(true, s.player.eq[bodyAreas[slotidx]][i].item);
+			}
+		}
+	}
+	return fn(false);
+}
 
 Character.prototype.getLoad = function(s, fn) {
 	var load = Math.round((s.player.str + s.player.con / 4) * 10);

@@ -9,11 +9,11 @@ var Roller = function() {
 
 // General dice rolling
 Roller.prototype.roll = function(dNum, dSides, fn) {
-	var total = 0,	
+	var total = 0,
 	i = 0;
 		
 	for (i; i < dNum; i += 1) {
-		total = total + Math.floor((Math.random() * dSides) + 1);					
+		total = total + Math.floor((Math.random() * dSides) + 1);
 	}
 	
 	if (typeof fn === 'function') {

@@ -24,7 +24,7 @@ server = http.createServer(function (req, res) {
 			break;
 	}
 	filename = path.join(process.cwd(), 'public', uri);
-	path.exists(filename, function(exists){
+	fs.exists(filename, function(exists){
 		var extension, mimeType, fileStream;
 		if (exists) {
 			extension = path.extname(filename).substr(1);
@@ -80,67 +80,64 @@ Cmds = require('./src/commands').cmd,
 Skills = require('./src/skills').skill,
 Ticks = require('./src/ticks');
 
+require('./src/commandlist');
+
 io.set('log level', 1);
 
 server.listen(cfg.port);
 
 io.on('connection', function (s) {
-	s.on('login', function (r) {	
-		var parseCmd = function(r, s) {
-			var cmdArr = r.msg.split(' ');
-			r.cmd = cmdArr[0];
-			r.msg = cmdArr.slice(1).join(' ');
+	var parseCmd = function(s, r) {
+		var cmdResult = false;
 
-			if (/[`~@#$%^&*()-+={}[]|]+$/g.test(r.msg) === false) {
-				if (r.cmd !== '') {
-					console.log(r);
-					if (r.cmd in Cmds) {
-						return Cmds[r.cmd](r, s);
-					} else if (r.cmd in Skills) {
-						return Skills[r.cmd](r, s);
-					} else {
-						s.emit('msg', {msg: 'Not a valid command.', styleClass: 'error'});
-						return Character.prompt(s);
-					}
-				} else {
-					return Character.prompt(s);
-				}
-			} else {
-				s.emit('msg', {msg: 'Invalid characters in command.'});
+		if (r.cmd !== '') {
+			console.log(r);
+			if(cmdResult = Cmds.dispatch(s, r)) {
+				cmdResult(s, r);
+			}
+			else {
+				s.emit('msg', {msg: 'Not a valid command.', styleClass: 'error'});
 				return Character.prompt(s);
 			}
-		};
+		} else {
+			return Character.prompt(s);
+		}
+	};
 
-		if (r.msg !== '') { // not checking slashes
-			return Character.login(r, s, function (name, s, fnd) {
-				if (fnd) {
+	var playGame = function(s) {
+		s.on('cmd', function (r) {
+			parseCmd(s, r);
+		});
+	}
+
+	s.on('login', function (r) {
+		if (r.msg !== '') {
+			return Character.exists(s, r.msg, function (s, name, found) {
+				if(found) {
 					s.join('mud'); // mud is one of two socket.io rooms, 'creation' the other
-					Character.load(name, s, function (s) {
+					Character.load(s, name, function (s) {
 						Character.getPassword(s, function(s) {
-							s.on('cmd', function (r) { 
-								parseCmd(r, s);
-							});
+							Character.login(s, playGame);
 						});
 					});
-				} else {
+				}
+				else {
 					s.join('creation'); // Character creation is its own socket.io room, 'mud' the other
-					s.player = {name:name};					
-					
-					Character.newCharacter(r, s, function(s) {
-						s.on('cmd', function (r) { 
-							parseCmd(r, s);
-						});
-					});
+					s.player = {name:name};
+
+					Character.newCharacter(r, s, playGame);
 				}
 			});
 		} else {
 			return s.emit('msg', {msg : 'Enter your name:', res: 'login', styleClass: 'enter-name'});
 		}
-    });
+	});
 
 	// Quitting
 	s.on('quit', function () {
 		Character.save(s, function() {
+			s.emit('token', {user: '', token: ''});
+
 			s.emit('msg', {
 				msg: 'Add a little to a little and there will be a big pile.',
 				emit: 'disconnect',
@@ -156,15 +153,38 @@ io.on('connection', function (s) {
 	s.on('disconnect', function () {
 		var i = 0;
 		if (s.player !== undefined) {
-			for (i; i < module.exports.players.length; i += 1) {	
+			for (i; i < module.exports.players.length; i += 1) {
 				if (module.exports.players[i].name === s.player.name) {
-					module.exports.players.splice(i, 1);	
+					module.exports.players.splice(i, 1);
 				}
 			}
 		}
 	});
 
-	s.emit('msg', {msg : 'Enter your name:', res: 'login', styleClass: 'enter-name'});
+	// Token Auth
+	s.on('auth', function(r){
+		if(typeof r.user !== 'undefined' && typeof r.token !== 'undefined' && r.user != '' && r.token != '') {
+			Character.exists(s, r.user, function(s, name, found){
+				if(found) {
+					s.join('mud');
+					Character.load(s, name, function (s) {
+						Character.validateToken(s, r.token, function(s) {
+							Character.login(s, playGame);
+						});
+					});
+				}
+				else {
+					s.emit('msg', {msg: 'Cookie-based login failed.  Please log in manually.', res: 'login', styleClass: 'error'});
+					s.emit('msg', {msg: 'Enter your name:', res: 'login', styleClass: 'enter-name'});
+				}
+			})
+		}
+		else {
+			s.emit('msg', {msg: 'Enter your name:', res: 'login', styleClass: 'enter-name'});
+		}
+	});
+
+	s.emit('auth', {msg: 'Got password?'});
 });
 
 console.log(cfg.name + ' is ready to rock and roll on port ' + cfg.port);
