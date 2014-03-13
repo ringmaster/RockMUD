@@ -607,7 +607,7 @@ Cmd.prototype.inventory = function(s) {
 	return Character.prompt(s);
 }
 
-Cmd.prototype.score = function(r, s) { 
+Cmd.prototype.score = function(s) {
 	var i = 0,
 	score = '<div class="score-name">' + s.player.name + 
 	' <div class="score-title">' + s.player.title + '</div></div>' +
@@ -743,6 +743,8 @@ Cmd.prototype.restore = function(s) {
 				if(player.player.chp != player.player.hp) {
 					healed++;
 					player.player.chp = player.player.hp;
+					player.player.hunger = 0;
+					player.player.thirst = 0;
 					player.emit('msg', {
 						msg: 'You have been fully healed by an admin.',
 						styleClass: 'foe-miss'
