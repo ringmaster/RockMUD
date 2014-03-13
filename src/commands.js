@@ -563,22 +563,17 @@ Cmd.prototype.skills = function(r, s) {
  * @returns {*}
  */
 Cmd.prototype.wear = function(s, r) {
-	if (r.msg !== '') {
-		Character.checkInventory(s, r.params.target, function(found, item) {
-			if (found) {
-				Character.wear(s, item, function(wearSuccess, msg) {
-					s.emit('msg', {msg: msg, styleClass: 'cmd-wear'});
-					return Character.prompt(s);
-				});
-			} else {
-				s.emit('msg', {msg: 'You are not carrying that item.', styleClass: 'error'});
+	Character.checkInventory(s, r.params.target, function(found, item) {
+		if (found) {
+			Character.wear(s, item, function(wearSuccess, msg) {
+				s.emit('msg', {msg: msg, styleClass: 'cmd-wear'});
 				return Character.prompt(s);
-			}
-		});
-	} else {
-		s.emit('msg', {msg: 'Wear what?', styleClass: 'error'});
-		return Character.prompt(s);
-	}
+			});
+		} else {
+			s.emit('msg', {msg: 'You are not carrying that item.', styleClass: 'error'});
+			return Character.prompt(s);
+		}
+	});
 }
 
 Cmd.prototype.remove = function(r, s) {
