@@ -58,7 +58,7 @@
 					"attackType": "bite",
 					"ac": 6,
 					"items": [],
-					"flags": {}
+					"flags": []
 				},
 				{
 					"name": "Boar",
@@ -89,7 +89,7 @@
 					"attackType": "bite",
 					"ac": 8,
 					"items": [],
-					"flags": {}
+					"flags": []
 				}
 			],
 			"items": [
@@ -102,9 +102,11 @@
 					"level": 1,
 					"itemType": "food",
 					"weight": 0.5,
-					"flags": {
-						"hunger": -5
-					}
+					"flags": [
+						{
+							"hunger": -5
+						}
+					]
 				},
 				{
 					"name": "fountain",
@@ -114,9 +116,7 @@
 					"id": 6,
 					"level": 1,
 					"itemType": "scenery",
-					"flags": {
-						"invisible": true
-					}
+					"flags": []
 				},
 				{
 					"name": "Short Sword",
@@ -133,10 +133,10 @@
 					"attackElement": "",
 					"weight": 4,
 					"slot": "hands",
-					"flags": {}
+					"flags": []
 				}
 			],
-			"flags": {},
+			"flags": [],
 			"onEnter": ""
 		},
 		{
@@ -163,10 +163,10 @@
 					"ac": 2,
 					"weight": 6,
 					"slot": "hands",
-					"flags": {}
+					"flags": []
 				}
 			],
-			"flags": {}
+			"flags": []
 		},
 		{
 			"id": 3,
@@ -180,7 +180,7 @@
 			],
 			"monsters": [],
 			"items": [],
-			"flags": {}
+			"flags": []
 		},
 		{
 			"id": 4,
@@ -194,7 +194,7 @@
 			],
 			"monsters": [],
 			"items": [],
-			"flags": {}
+			"flags": []
 		},
 		{
 			"id": 5,
@@ -220,10 +220,10 @@
 					"ac": 1,
 					"weight": 1,
 					"slot": "head",
-					"flags": {}
+					"flags": []
 				}
 			],
-			"flags": {}
+			"flags": []
 		}
 	]
 }
