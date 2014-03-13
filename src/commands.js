@@ -501,8 +501,12 @@ Cmd.prototype.title = function(r, s) {
 	}
 }
 
-// View equipment
-Cmd.prototype.equipment = function(r, s) {
+/**
+ * View Equipped items and locations
+ * @param s
+ * @returns {*}
+ */
+Cmd.prototype.equipment = function(s) {
 	var bodyAreas = Object.keys(s.player.eq),
 	eqStr = '',
 	i = 0,
@@ -552,16 +556,22 @@ Cmd.prototype.skills = function(r, s) {
 	}
 }
 
-Cmd.prototype.wear = function(r, s) {
+/**
+ * Equip an item
+ * @param s
+ * @param r
+ * @returns {*}
+ */
+Cmd.prototype.wear = function(s, r) {
 	if (r.msg !== '') {
-		Character.checkInventory(r, s, function(fnd, item) {
-			if (fnd) {
-				Character.wear(r, s, item, function(wearSuccess, msg) {
+		Character.checkInventory(s, r.params.target, function(found, item) {
+			if (found) {
+				Character.wear(s, item, function(wearSuccess, msg) {
 					s.emit('msg', {msg: msg, styleClass: 'cmd-wear'});
 					return Character.prompt(s);
 				});
 			} else {
-				s.emit('msg', {msg: 'That item is not here.', styleClass: 'error'});
+				s.emit('msg', {msg: 'You are not carrying that item.', styleClass: 'error'});
 				return Character.prompt(s);
 			}
 		});

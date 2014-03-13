@@ -692,12 +692,12 @@ Character.prototype.removeFromInventory = function(s, itemObj, fn) {
 	}
 }
 
-Character.prototype.wear = function(r, s, item, fn) {
+Character.prototype.wear = function(s, item, fn) {
 	var bodyAreas = Object.keys(s.player.eq),
 	i = 0,
 	j = 0;	
 	
-	for (i; i < bodyAreas.length; i += 1) {	
+	for (i; i < bodyAreas.length; i += 1) {
 		j = 0;
 		
 		for (j; j < s.player.eq[bodyAreas[i]].length; j += 1) {
@@ -743,6 +743,7 @@ Character.prototype.wear = function(r, s, item, fn) {
 			}
 		}
 	}
+	return fn(false, 'You must remove gear to have room for that item.');
 }
 
 Character.prototype.remove = function(r, s, item, fn) {

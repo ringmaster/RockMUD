@@ -14,7 +14,9 @@ cmd.addCommand(/^who$/i, cmd.who);
 
 cmd.addCommand(/^(?:get|take|pick up) +(.+)$/i, cmd.get, ["target"]);
 cmd.addCommand(/^(?:drop|leave|put down) +(.+)$/i, cmd.drop, ["target"]);
+cmd.addCommand(/^(?:wear|equip) +(.+)$/i, cmd.wear, ["target"]);
 cmd.addCommand(/^i(nventory)?$/i, cmd.inventory);
+cmd.addCommand(/^eq(uipment)?$/i, cmd.equipment);
 
 cmd.addCommand(/^restore$/i, cmd.restore);
 cmd.addCommand(/^save$/i, cmd.save);
