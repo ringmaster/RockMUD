@@ -43,17 +43,42 @@ Character.prototype.exists = function(s, name, fn) {
 }
 
 Character.prototype.load = function(s, name, fn) {
-	fs.readFile('./players/'  + name + '.json', function (err, r) {
+	var playerFile = './players/'  + name + '.json';
+	fs.readFile(playerFile, function (err, r) {
 		if (err) {
 			throw err;
 		}
 
-		s.player = JSON.parse(r);
+		try {
+			s.player = JSON.parse(r);
+		}
+		catch(e) {
+			s.emit('msg', {msg: 'Your character was unable to be loaded.  The stored character file may be corrupt and has been moved to a backup file.'});
+
+			var done = function(err) {
+				if (!cbCalled) {
+					cbCalled = true;
+					fs.unlink(playerFile, function(){
+						s.emit('msg', {msg : 'Enter your name:', res: 'login', styleClass: 'enter-name'})
+					})
+				}
+			}
+
+			var cbCalled = false;
+			var rd = fs.createReadStream(playerFile);
+			rd.on("error", done);
+
+			var wr = fs.createWriteStream(playerFile + '.bak');
+			wr.on("error", done);
+			wr.on("close", function() { done(); });
+			rd.pipe(wr);
+			return fn(s, false);
+		}
 
 		s.player.filename = name;
 		s.player.sid = s.id;
 
-		return fn(s);
+		return fn(s, true);
 	});
 }
 
@@ -153,11 +178,9 @@ Character.prototype.login = function(s, fn) {
 
 	character.addPlayer(s, function(added, msg) {
 		if (added) {
-			Room.checkArea(s.player.area, function(fnd) {
-				if (!fnd) {
-					Room.getArea(s.player.area, function(area) {
-						areas.push(area);
-					});
+			Room.checkArea(s.player.area, function(found, area) {
+				if (found) {
+					areas.push(area);
 				}
 			});
 

@@ -23,6 +23,8 @@ cmd.addCommand(/^i(nventory)?$/i, cmd.inventory);
 cmd.addCommand(/^eq(uipment)?$/i, cmd.equipment);
 
 cmd.addCommand(/^restore$/i, cmd.restore);
+cmd.addCommand(/^reload$/i, cmd.reload);
+
 cmd.addCommand(/^save$/i, cmd.save);
 cmd.addCommand(/^(score|stats)$/i, cmd.score);
 cmd.addCommand(/^skills$/i, cmd.skills);

@@ -9,7 +9,7 @@
 		{
 			"id" : 1,
 			"title" : "Town Square",
-			"content" : "Welcome to the first room.",
+			"content" : "This is the grand town square of Midgaard.  The famous Fountain of Hyrengaard stands here, flowing clear water.  Citizens mill about happily around the open courtyard.",
 			"exits" : [
 				{
 					"cmd" : "north",
@@ -31,7 +31,7 @@
 					"area": "Midgaard",
 					"level": 1,
 					"short": "a large boar",
-					"long": "",
+					"long": "This is a large boar rooting in the dirt.  It eyes you suspiciously.",
 					"id": 6,
 					"type": "monster",
 					"race": "animal",
@@ -61,7 +61,7 @@
 					"area": "Midgaard",
 					"level": 1,
 					"short": "a large brown boar",
-					"long": "",
+					"long": "This is a large brown boar, chewing on some grasses.  It doesn't look friendly.",
 					"id": 7,
 					"type": "monster",
 					"race": "animal",

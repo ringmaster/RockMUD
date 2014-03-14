@@ -806,10 +806,16 @@ Cmd.prototype.json = function(r, s) {
 * Stops all combat and reloads all active areas and players without restarting the server. Checks users role.
 */
 Cmd.prototype.reboot = function(r, s) {
-	if (s.player.role === 'admin') {
+}
 
+Cmd.prototype.reload = function(s) {
+	if (s.player.role === 'admin') {
+		areas = [];
+		Room.reload();
+
+		s.emit('msg', {msg: 'Reloaded areas, monsters, and items.' });
 	} else {
-		s.emit('msg', {msg: 'You wish!', styleClass: 'error' });
+		s.emit('msg', {msg: 'You do not possess that kind of power.', styleClass: 'error' });
 		return Character.prompt(s);
 	}
 }

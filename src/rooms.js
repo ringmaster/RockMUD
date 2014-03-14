@@ -11,30 +11,36 @@ var Room = function() {
 
 // Returns an entire area
 Room.prototype.getArea = function(areaName, fn) {
-	this.checkArea(areaName, function(fnd, area) {
-		if (fnd) {
-			return fn(area);
-		} else {
-			fs.readFile('./areas/' + areaName + '.json', function (err, area) {
-				return fn(JSON.parse(area));
-			});
-		}
+	fs.readFile('./areas/' + areaName + '.json', function (err, area) {
+		return fn(true, JSON.parse(area));
 	});
 }
 
 // return boolean after checking if the area is in areas[]
 Room.prototype.checkArea = function(areaName, fn) {
-	if (areas.length > 0) {
-		areas.forEach(function(area) {
-			if (areaName === area.name.toLowerCase()) {
-				return fn(true, area);
-			} else {
-				return fn(false);
-			}
-		});
-	} else {
-		return fn(false);
+	var room = this,
+		i;
+	for(i = 0; i < areas.length; i++) {
+		if (areaName === areas[i].name.toLowerCase()) {
+			return fn(true, areas[i]);
+		}
 	}
+	fs.exists('./areas/' + areaName + '.json', function(exists) {
+		if(exists) {
+			room.getArea(areaName, function(success, area) {
+				if(success) {
+					areas.push(area);
+					fn(true, area);
+				}
+				else {
+					fn(false);
+				}
+			});
+		}
+		else {
+			fn(false);
+		}
+	});
 };
 
 // Returns a specifc room for display, to retun the room Obj use getRoomObject
@@ -90,23 +96,16 @@ Room.prototype.getRoom = function(s, fn) {
 		}	
 	};
 	
-	room.checkArea(s.player.area, function(fnd, area) {
-		if (fnd) { //  area was in areas[]
+	room.checkArea(s.player.area, function(found, area) {
+		if (found) { //  area was in areas[]
 			displayRoom(area.rooms);
 
 			if (typeof fn === 'function') {
 				return fn();
 			}
-		} else { // loading area and placing it into memory
-			fs.readFile('./areas/' + s.player.area + '.json', function (err, area) {
-				var area = JSON.parse(area);
-
-				displayRoom(area.rooms);
-				
-				if (typeof fn === 'function') {
-					return fn();
-				}
-			});
+		}
+		else {
+			s.emit('msg', {msg: 'There was a general error loading the room description.', styleClass: 'error'});
 		}
 	});
 }
@@ -129,6 +128,18 @@ Room.prototype.updateArea = function(areaName, fn) {
 		} else {
 			return fn(false);
 		}
+	}
+}
+
+/**
+ * Reload all room data
+ * Really, unload all room data, then let it be reloaded on demand
+ * @param fn
+ */
+Room.prototype.reload = function(fn) {
+	areas = [];
+	if(typeof fn == 'function') {
+		fn(true);
 	}
 }
 

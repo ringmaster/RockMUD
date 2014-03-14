@@ -167,10 +167,12 @@ io.on('connection', function (s) {
 			Character.exists(s, r.user, function(s, name, found){
 				if(found) {
 					s.join('mud');
-					Character.load(s, name, function (s) {
-						Character.validateToken(s, r.token, function(s) {
-							Character.login(s, playGame);
-						});
+					Character.load(s, name, function (s, success) {
+						if(success) {
+							Character.validateToken(s, r.token, function (s) {
+								Character.login(s, playGame);
+							});
+						}
 					});
 				}
 				else {
