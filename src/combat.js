@@ -1,8 +1,10 @@
 "use strict";
 
 var Dice = require('./dice').roller,
+	Character = require('./character').character,
+	Room = require('./rooms').room;
 
-Combat = function() {
+var Combat = function() {
 	this.adjectives = ['barbaric', 'BARBARIC', 'great', 'GREAT', 'mighty', 'MIGHTY', 'AWESOME'];
 	this.abstractNouns = ['hatred', 'intensity', 'weakness'];
 };
@@ -15,38 +17,95 @@ Combat = function() {
  * @param s
  * @param monster
  * @param fn
- * @todo Implement unarmed combat
  */
 Combat.prototype.begin = function(s, monster, fn) {
 	var combat = this,
-		weapons = combat.getWeapons(s);
+		combatInterval,
+		roundCounter = 0;
 
 	s.player.position = 'fighting';
-	monster.position = 'fighting'; 
-	
-	Dice.roll(1, 20, function(total) { // Roll against AC
-		var i = 0;
-		total = total + 1 + s.player.dex/4;
+	monster.position = 'fighting';
 
-		if (total > monster.ac) {
-			if (weapons.length !== 0) {
-				for (i; i < weapons.length; i++) {
-					combat.meleeDamage(s.player, monster, weapons[i].item, function(total, weapon) {
-						s.emit('msg', {
-							msg: 'You ' + weapon.attackType + ' ' + monster.short + '(' + total + ')',
-							styleClass: 'combat player-hit'
-						});
+	// Combat Loop
+	combatInterval = setInterval(function() {
+		var initiativePlayer, initiativeMonster, playerGoes, monsterGoes, queue = [];
+
+		// Are we both still fighting?
+		if (s.player.position === 'fighting' && monster.position === 'fighting') {
+
+			// Increment round counter, figure out round speed
+			roundCounter++;
+			initiativePlayer = 10 + Math.floor((s.player.dex - 10) / 3);
+			initiativeMonster = 10 + Math.floor((monster.dex - 10) / 3);
+
+			if(initiativeMonster > initiativePlayer) {
+				initiativeMonster = Math.floor(initiativeMonster / initiativePlayer);
+				initiativePlayer = 1;
+			}
+			else {
+				initiativePlayer = Math.floor(initiativePlayer / initiativeMonster);
+				initiativeMonster = 1;
+			}
+
+			// Who goes this round?
+			playerGoes = (roundCounter % initiativePlayer == 0);
+			monsterGoes = (roundCounter % initiativeMonster == 0);
+
+			if(s.player.dex > monster.dex) {
+				if(playerGoes) queue.push(function(){combat.attackerRound(s, monster)});
+				if(monsterGoes) queue.push(function(){combat.targetRound(s, monster)});
+			}
+			else {
+				if(monsterGoes) queue.push(function(){combat.targetRound(s, monster)});
+				if(playerGoes) queue.push(function(){combat.attackerRound(s, monster)});
+			}
+
+			queue.push(function(){
+				if (monster.chp <= 0) {
+					clearInterval(combatInterval);
+
+					monster.position = 'dead';
+					Room.removeMonster({
+						area: s.player.area,
+						id: s.player.roomid
+					}, monster, function(removed) {
+						if (removed) {
+							Room.addCorpse(s, monster, function(corpse) {
+								combat.calcXP(s, monster, function(earnedXP) {
+									s.player.position = 'standing';
+
+									if (earnedXP > 0) {
+										s.emit('msg', {msg: 'You defeated your foe! You learn some things, resulting in ' + earnedXP + ' experience points.', styleClass: 'combat combat-victory'});
+									} else {
+										s.emit('msg', {msg: 'You defeated your foe, but learned nothing from such a paltry adversary.', styleClass: 'combat combat-victory'});
+									}
+								});
+							});
+						}
 					});
 				}
+			});
 
-				return fn(true, monster);
-			} else {
-				// Unarmed
-			}		
-		} else {
-			return s.emit('msg', {msg: 'You swing and miss ' +  monster.short, styleClass: 'combat player-miss'});
+			queue.push(function(){
+				if (s.player.chp <= 0) {
+					clearInterval(combatInterval);
+					s.emit('msg', {msg: 'You died!', styleClass: 'combat combat-death'});
+					//Character.death(s);
+				}
+			});
+
+			queue.push(function(){
+				Character.prompt(s);
+			});
+
+			for(var q in queue) {
+				queue[q]();
+			}
+
 		}
-	});
+	}, 1800);
+
+	combat.attackerRound(s, monster, fn);
 }
 
 /**
@@ -83,35 +142,41 @@ Combat.prototype.round = function(s, monster, fn) {
 * The round for the entity issuing the kill command, the Attacker 
 * Attacker is always at the top of the round
 */
-Combat.prototype.attackerRound = function(s, monster, fn) {
+Combat.prototype.attackerRound = function(s, monster) {
 	var combat = this,
-		weapons = combat.getWeapons(s);
-	Dice.roll(1, 20, function(total) { // Roll against AC
-		var i = 0;
-		total = total + 1 + s.player.dex/4;
+		weapons = combat.getWeapons(s),
+		activeWeapon,
+		damage = 0,
+		hitRoll;
 
-		if (total > monster.ac) {
-			if (weapons.length !== 0) {
-				for (i; i < weapons.length; i += 1) {
-					combat.meleeDamage(s.player, monster, weapons[i].item, function(total, weapon) {
-						monster.chp = (monster.chp - total);
-						s.emit('msg', {
-							msg: 'You ' + weapon.attackType + ' ' + monster.short + '(' + total + ')',
-							styleClass: 'combat player-hit'
-						});
-					});
-				}
+	// Figure out what weapon we're using
+	// Uh, we're just starting out, so just use the first one in the list for now.
+	if(weapons.length > 0) {
+		activeWeapon = weapons.shift().item;
+	}
+	else {
+		// This is the default unarmed weapon
+		activeWeapon = {
+			attackType: 'punch',
+			diceNum: 1,
+			diceSides: 4
+		};
+	}
 
-				return fn(s, monster);
-			} else {
-				// Unarmed
-			}		
-		} else {
-			s.emit('msg', {msg: 'You swing and miss ' +  monster.short, styleClass: 'combat player-miss'});
+	// Roll against AC
+	hitRoll = Dice.roll(1, 20) + Math.floor(s.player.dex / 3);
 
-			return fn(s, monster);
-		}
-	});
+	if (hitRoll > monster.ac) {
+		damage = combat.meleeDamage(s.player, monster, activeWeapon);
+		monster.chp = (monster.chp - damage);
+		s.emit('msg', {
+			msg: 'You ' + activeWeapon.attackType + ' ' + monster.short + '. (' + damage + ')',
+			styleClass: 'combat player-hit'
+		});
+	}
+	else {
+		s.emit('msg', {msg: 'You ' + activeWeapon.attackType + ' at ' + monster.short + ' but miss!', styleClass: 'combat player-miss'});
+	}
 }
 
 /*
@@ -119,33 +184,18 @@ Combat.prototype.attackerRound = function(s, monster, fn) {
 * Target is always at the bottom of the round
 */
 Combat.prototype.targetRound = function(s, monster, fn) {
-	var combat = this;
+	var combat = this, damage = 0;
 	Dice.roll(1, 20, function(total) { // Roll against AC
 		total = total + 5;
-		if (total > s.player.ac) {		
-			combat.meleeDamage(monster, s.player, {diceNum: monster.diceNum, diceSides: monster.diceSides}, function(total, weapon) {
-				s.player.chp = (s.player.chp - total);
-				s.emit('msg', {
-					msg: monster.short + ' ' + monster.attackType + 's you hard! (' + total + ')',
-					styleClass: 'combat foe-hit'
-				});	
-				
-				return fn(s, monster);
+		if (total > s.player.ac) {
+			damage = combat.meleeDamage(monster, s.player, {diceNum: monster.diceNum, diceSides: monster.diceSides});
+			s.player.chp = (s.player.chp - total);
+			s.emit('msg', {
+				msg: monster.short + ' ' + monster.attackType + 's you hard! (' + total + ')',
+				styleClass: 'combat foe-hit'
 			});
-			/*	
-			Dice.roll(1, 20, function(total) {
-				total = (total + monster.level + Dice.roll(monster.diceNum, monster.diceSides)) - (s.player.ac / 2) + (s.monster - s.player.level);
-				s.player.chp = s.player.chp - total;
- 
-				s.emit('msg', {
-					msg: monster.short + ' ' + monster.attackType + ' you hard! (' + total + ')',
-					styleClass: 'foe-hit'
-				});	
-				
-				return fn(s, monster);
-			});		
-			*/			
-		} else {
+		}
+		else {
 			s.emit('msg', {
 				msg: monster.short + ' misses '+ ' you!',
 				styleClass: 'combat foe-miss'
@@ -184,21 +234,17 @@ Combat.prototype.calcXP = function(s, monster, fn) {
  * @param opponent
  * @param weapon
  * @param fn
- * @todo Damage calculation should factor in weapon type and ability.
+ * @todo Damage calculation should factor in weapon type and character ability.
  */
-Combat.prototype.meleeDamage = function(attacker, opponent, weapon, fn) {
-	Dice.roll(1, 20, function(total) {
-		total = (total + 1 + attacker.str/2);
-		total = total - (opponent.ac/3);
+Combat.prototype.meleeDamage = function(attacker, opponent, weapon) {
+	var total = Dice.roll(1, 20);
+	total = (total + 1 + attacker.str/2);
+	total = total - (opponent.ac/3);  // This creates the potential to *add* HP to the monster attacked!
 
-		if (typeof weapon !== 'function') {
-			total += Dice.roll(weapon.diceNum, weapon.diceSides);
-
-			return fn(Math.round(total), weapon);
-		} else {
-			return fn(Math.round(total), weapon);
-		}	
-	});
+	if (typeof weapon !== 'function') {
+		total += Dice.roll(weapon.diceNum, weapon.diceSides);
+	}
+	return Math.round(total);
 }
 
 module.exports.combat = new Combat();

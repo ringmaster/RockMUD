@@ -270,51 +270,7 @@ Cmd.prototype.kill = function(s, r) {
 		if (found) {
 			s.emit('msg', {msg: 'You enter deadly combat with ' + monster.short + '!', styleClass: 'combat begin'});
 
-			Combat.begin(s, monster, function(contFight, monster) { // the first round qualifiers
-				var combatInterval;
-				
-				if (contFight) {
-					// Combat Loop
-					combatInterval = setInterval(function() {
-						if (s.player.position === 'fighting' && monster.position === 'fighting') {
-							
-							Combat.round(s, monster, function() {
-								if (monster.chp <= 0) {
-									monster.position = 'dead';
-
-									clearInterval(combatInterval);
-								
-									Room.removeMonster({
-										area: s.player.area,
-										id: s.player.roomid
-									}, monster, function(removed) {
-										if (removed) {
-											Room.addCorpse(s, monster, function(corpse) {
-												Combat.calcXP(s, monster, function(earnedXP) {
-													s.player.position = 'standing';
-
-													if (earnedXP > 0) {
-														s.emit('msg', {msg: 'You won the fight! You learn some things, resulting in ' + earnedXP + ' experience points.', styleClass: 'combat combat-victory'});
-													} else {
-														s.emit('msg', {msg: 'You won, but learned nothing from such a paltry foe.', styleClass: 'combat combat-victory'});
-													}
-												});
-											});
-										}
-									});
-
-								} else if (s.player.chp <= 0) {
-									clearInterval(combatInterval);
-									s.emit('msg', {msg: 'You died!', styleClass: 'combat combat-death'});
-									//Character.death(s);
-								}
-
-								Character.prompt(s);
-							});
-						}	
-					}, 1800);
-				}
-			});
+			Combat.begin(s, monster);
 		} else {
 			s.emit('msg', {msg: 'There is no creature by that name here.', styleClass: 'error'});
 			return Character.prompt(s);
