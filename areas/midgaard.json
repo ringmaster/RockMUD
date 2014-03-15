@@ -30,11 +30,11 @@
 			],
 			"monsters": [
 				{
-					"name": "Boar",
+					"name": "Antelope",
 					"area": "Midgaard",
 					"level": 1,
-					"short": "a large boar",
-					"long": "This is a large boar rooting in the dirt.  It eyes you suspiciously.",
+					"short": "a large antelope",
+					"long": "This is a large antelope chewing on some grass.  It eyes you suspiciously.",
 					"id": 6,
 					"type": "monster",
 					"race": "animal",
