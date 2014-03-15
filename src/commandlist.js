@@ -13,7 +13,7 @@ cmd.addCommand(/^(north|east|south|west|up|down|enter|exit)$/i, cmd.move, ["dire
 cmd.addCommand(/^where$/i, cmd.where);
 
 cmd.addCommand(/^who$/i, cmd.who);
-cmd.addCommand(/^(wear|drop|remove|get|take|pick up|leave|put down|equip)$/i, cmd.doWhat, ["what"]);
+cmd.addCommand(/^(wear|drop|remove|get|take|pick up|leave|put down|equip|kill)$/i, cmd.doWhat, ["what"]);
 
 cmd.addCommand(/^(?:get|take|pick up) +(?:(?:the|a|an) +)?(.+)$/i, cmd.get, ["target"]);
 cmd.addCommand(/^(?:drop|leave|put down) +(?:(?:the|a|an) +)?(.+)$/i, cmd.drop, ["target"]);
