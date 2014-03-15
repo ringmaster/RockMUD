@@ -7,11 +7,16 @@ Combat = function() {
 	this.abstractNouns = ['hatred', 'intensity', 'weakness'];
 };
 
-/*
-General idea behind a hit:
-Your Short Sword (proper noun) slices (verb attached to item) a Red Dragon (proper noun) with barbaric (adjective) intensity (abstract noun) (14)
-You swing and miss a Red Dragon with barbaric intensity (14)
-*/
+/**
+ * Start combat
+ * General idea behind a hit:
+ * Your Short Sword (proper noun) slices (verb attached to item) a Red Dragon (proper noun) with barbaric (adjective) intensity (abstract noun) (14)
+ * You swing and miss a Red Dragon with barbaric intensity (14)
+ * @param s
+ * @param monster
+ * @param fn
+ * @todo Implement unarmed combat
+ */
 Combat.prototype.begin = function(s, monster, fn) {
 	var combat = this,
 		weapons = combat.getWeapons(s);
@@ -29,7 +34,7 @@ Combat.prototype.begin = function(s, monster, fn) {
 					combat.meleeDamage(s.player, monster, weapons[i].item, function(total, weapon) {
 						s.emit('msg', {
 							msg: 'You ' + weapon.attackType + ' ' + monster.short + '(' + total + ')',
-							styleClass: 'player-hit'
+							styleClass: 'combat player-hit'
 						});
 					});
 				}
@@ -39,7 +44,7 @@ Combat.prototype.begin = function(s, monster, fn) {
 				// Unarmed
 			}		
 		} else {
-			return s.emit('msg', {msg: 'You swing and miss ' +  monster.short, styleClass: 'player-miss'});
+			return s.emit('msg', {msg: 'You swing and miss ' +  monster.short, styleClass: 'combat player-miss'});
 		}
 	});
 }
@@ -92,7 +97,7 @@ Combat.prototype.attackerRound = function(s, monster, fn) {
 						monster.chp = (monster.chp - total);
 						s.emit('msg', {
 							msg: 'You ' + weapon.attackType + ' ' + monster.short + '(' + total + ')',
-							styleClass: 'player-hit'
+							styleClass: 'combat player-hit'
 						});
 					});
 				}
@@ -102,7 +107,7 @@ Combat.prototype.attackerRound = function(s, monster, fn) {
 				// Unarmed
 			}		
 		} else {
-			s.emit('msg', {msg: 'You swing and miss ' +  monster.short, styleClass: 'player-miss'});
+			s.emit('msg', {msg: 'You swing and miss ' +  monster.short, styleClass: 'combat player-miss'});
 
 			return fn(s, monster);
 		}
@@ -122,7 +127,7 @@ Combat.prototype.targetRound = function(s, monster, fn) {
 				s.player.chp = (s.player.chp - total);
 				s.emit('msg', {
 					msg: monster.short + ' ' + monster.attackType + 's you hard! (' + total + ')',
-					styleClass: 'foe-hit'
+					styleClass: 'combat foe-hit'
 				});	
 				
 				return fn(s, monster);
@@ -143,19 +148,20 @@ Combat.prototype.targetRound = function(s, monster, fn) {
 		} else {
 			s.emit('msg', {
 				msg: monster.short + ' misses '+ ' you!',
-				styleClass: 'foe-miss'
+				styleClass: 'combat foe-miss'
 			});
 		}
 	});
 }
 
-Combat.prototype.calXP = function(s, monster, fn) {
+Combat.prototype.calcXP = function(s, monster, fn) {
 	if ((monster.level) >= (s.player.level - 5)) {
 		if (monster.level >= s.player.level) {
 			Dice.roll(1, 4, function(total) {
 				var exp,
 				total = total + 1;
 
+				// @todo Fix this math?
 				exp = ((monster.level - s.player.level) * total) + 1 * (total * 45);
 
 				s.player.exp = exp + s.player.exp;
@@ -172,7 +178,14 @@ Combat.prototype.calXP = function(s, monster, fn) {
 	}
 }
 
-// Calculate the total damage done with a melee hit
+/**
+ * Calculate the total damage done with a melee hit
+ * @param attacker
+ * @param opponent
+ * @param weapon
+ * @param fn
+ * @todo Damage calculation should factor in weapon type and ability.
+ */
 Combat.prototype.meleeDamage = function(attacker, opponent, weapon, fn) {
 	Dice.roll(1, 20, function(total) {
 		total = (total + 1 + attacker.str/2);

@@ -261,11 +261,14 @@ Cmd.prototype.drop = function(s, r) {
  * For attacking in-game monsters
  * @param s
  * @param r
+ * @todo Offload this combat stuff entirely to the combat module
+ * @todo Implement a better speed/initiative order
+ * @todo Implement "things you can't do when you're dead"
  */
 Cmd.prototype.kill = function(s, r) {
 	Room.checkMonster(s, r.params.target, function(found, monster) {
 		if (found) {
-			s.emit('msg', {msg: 'You enter deadly combat with a ' + monster.name + '!', styleClass: 'error'});
+			s.emit('msg', {msg: 'You enter deadly combat with ' + monster.short + '!', styleClass: 'combat begin'});
 
 			Combat.begin(s, monster, function(contFight, monster) { // the first round qualifiers
 				var combatInterval;
@@ -287,13 +290,13 @@ Cmd.prototype.kill = function(s, r) {
 									}, monster, function(removed) {
 										if (removed) {
 											Room.addCorpse(s, monster, function(corpse) {
-												Combat.calXP(s, monster, function(earnedXP) {
+												Combat.calcXP(s, monster, function(earnedXP) {
 													s.player.position = 'standing';
 
 													if (earnedXP > 0) {
-														s.emit('msg', {msg: 'You won the fight! You learn some things, resulting in ' + earnedXP + ' experience points.', styleClass: 'victory'});
+														s.emit('msg', {msg: 'You won the fight! You learn some things, resulting in ' + earnedXP + ' experience points.', styleClass: 'combat combat-victory'});
 													} else {
-														s.emit('msg', {msg: 'You won, but learned nothing.', styleClass: 'victory'});
+														s.emit('msg', {msg: 'You won, but learned nothing from such a paltry foe.', styleClass: 'combat combat-victory'});
 													}
 												});
 											});
@@ -302,18 +305,18 @@ Cmd.prototype.kill = function(s, r) {
 
 								} else if (s.player.chp <= 0) {
 									clearInterval(combatInterval);
-									s.emit('msg', {msg: 'You died!', styleClass: 'combat-death'});
+									s.emit('msg', {msg: 'You died!', styleClass: 'combat combat-death'});
 									//Character.death(s);
-								}	
+								}
 
 								Character.prompt(s);
-							});	
+							});
 						}	
 					}, 1800);
 				}
 			});
 		} else {
-			s.emit('msg', {msg: 'There is nothing by that name here.', styleClass: 'error'});
+			s.emit('msg', {msg: 'There is no creature by that name here.', styleClass: 'error'});
 			return Character.prompt(s);
 		}
 	});
