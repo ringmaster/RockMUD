@@ -191,7 +191,7 @@ ul li {
 }
 
 .room-exits {
-	color: red;
+	color: #096;
 }
 
 #cmd-active {
@@ -279,41 +279,40 @@ ul li {
 	color: #ff0000;
 }
 
+/** combat-related styles **/
+
 .cmd-kill {
 	clear: both;
 	display: inline-block;
 }
 
-.player-hit {
+.combat {
 	display: block;
 	padding: 0;
 	margin: 0;
 	font-size: 1.1em;
-	color: #ff0000;
+	padding-left: 32px;
+	background: url(../img/crossed-swords.svg) no-repeat;
+}
+
+.player-hit {
+	color: #999;
 }
 
 .player-miss {
-	display: block;
-	padding: 0;
-	margin: 0;
-	font-size: 1.1em;
-	color: #00ffff;
+	color: #999;
 }
 
 .foe-hit {
-	display: block;
-	padding: 0;
-	margin: 0;
-	font-size: 1.1em;
-	color: #ffff00;
+	color: #f00;
 }
 
 .foe-miss {
-	display: block;
-	padding: 0;
-	margin: 0;
-	font-size: 1.1em;
 	color: #fff;
+}
+
+.combat-death {
+
 }
 
 /**
@@ -401,11 +400,4 @@ ul li {
 
 .equipment-list td {
 	padding: 0px 10px;
-}
-
-/*** combat-related styles ***/
-.combat {
-	padding-left: 32px;
-	background-image: url(../img/crossed-swords.svg);
-	background-repeat: no-repeat;
 }
