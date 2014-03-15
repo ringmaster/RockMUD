@@ -257,11 +257,12 @@ Room.prototype.checkMonster = function(s, name, fn) {
 // Remove a monster from a room
 Room.prototype.removeMonster = function(roomQuery, monster, fn) {
 	this.getRoomObject(roomQuery, function(roomObj) {
-		roomObj.monsters = roomObj.monsters.filter(function(item, i) {
-			if (item.id !== monster.id) {
-				return fn(true);
-			}			
-		});	
+		var result = false;
+		roomObj.monsters = roomObj.monsters.filter(function(item) {
+			result |= item.id !== monster.id;
+			return item.id !== monster.id;
+		});
+		return fn(result);
 	});
 }
 
@@ -356,7 +357,7 @@ Room.prototype.msgToRoom = function(msgOpt, exclude, fn) {
 	var i = 0,
 	s;
 
-	for (i; i < players.length; i += 1) {
+	for (i; i < players.length; i++) {
 		s = io.sockets.socket(players[i].sid);
 		if (exclude === undefined || exclude === true) {
 			if (s.player.name !== msgOpt.playerName && s.player.roomid === msgOpt.roomid) {
