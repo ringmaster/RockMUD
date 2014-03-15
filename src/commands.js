@@ -265,6 +265,8 @@ Cmd.prototype.drop = function(s, r) {
 Cmd.prototype.kill = function(s, r) {
 	Room.checkMonster(s, r.params.target, function(found, monster) {
 		if (found) {
+			s.emit('msg', {msg: 'You enter deadly combat with a ' + monster.name + '!', styleClass: 'error'});
+
 			Combat.begin(s, monster, function(contFight, monster) { // the first round qualifiers
 				var combatInterval;
 				
