@@ -259,7 +259,7 @@ Room.prototype.removeMonster = function(roomQuery, monster, fn) {
 	this.getRoomObject(roomQuery, function(roomObj) {
 		var result = false;
 		roomObj.monsters = roomObj.monsters.filter(function(item) {
-			result |= item.id !== monster.id;
+			result |= item.id === monster.id;
 			return item.id !== monster.id;
 		});
 		return fn(result);
