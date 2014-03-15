@@ -12,11 +12,13 @@ url = require('url'),
 path = require('path'),
 server = http.createServer(function (req, res) {
 	var uri, filename;
-	var mimeTypes = {'html': 'text/html', 'png': 'image/png',
-		'js': 'text/javascript', 'css': 'text/css'};
+	var mimeTypes = {
+		'html': 'text/html', 'png': 'image/png',
+		'js': 'text/javascript', 'css': 'text/css',
+	'svg': 'image/svg+xml'};
 
 	uri = url.parse(req.url).pathname;
-	uri = uri.replace(/\.+/g, '.').replace(/\/+/g, '/').replace(/[^a-z0-9\.\/_]+/g, '');
+	uri = uri.replace(/\.+/g, '.').replace(/\/+/g, '/').replace(/[^a-z0-9\-\.\/_]+/g, '');
 	switch(uri) {
 		case '/':
 		case '':

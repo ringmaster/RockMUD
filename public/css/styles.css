@@ -403,3 +403,9 @@ ul li {
 	padding: 0px 10px;
 }
 
+/*** combat-related styles ***/
+.combat {
+	padding-left: 32px;
+	background-image: url(../img/crossed-swords.svg);
+	background-repeat: no-repeat;
+}
