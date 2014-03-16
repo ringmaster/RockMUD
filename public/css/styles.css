@@ -77,17 +77,15 @@ ul li {
 /* Adjustments for resizing */
 @media screen and (max-width: 720px) {
 	#mudwrapper {
-		width: 90%;
+		padding:10px;
 	}
 
 	#terminal {
-		width: 90%;
 		margin: 0;
 	}
 }
 
 #mudwrapper {
-	width: 90%;
 	margin: 0 auto;
 	text-align: left;
 	background-color: #0c010f;
@@ -95,7 +93,6 @@ ul li {
 }
 
 #terminal {
-	width: 90%;
 	background-color: #0c010f;
 	color: #fff;
 	margin: 0 0 10px 0;
@@ -181,9 +178,16 @@ ul li {
 	padding: 5px 0 5px 0;
 }
 
-.room-title {
-	color: yellow;
+.room .room-title {
+	color: #ccc;
 	font-weight: bold;
+	background: #024;
+	margin-bottom: 10px;
+	padding: 3px 10px;
+}
+
+.room .room-extras {
+	margin-top: 10px;
 }
 
 .room-content {
@@ -258,9 +262,8 @@ ul li {
 	margin: 0;
 }
 
-.room ul {
-	padding: 0;
-	margin: 0;
+.room .area {
+	float: right;
 }
 
 .cprompt {

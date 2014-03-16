@@ -43,7 +43,7 @@ Room.prototype.checkArea = function(areaName, fn) {
 	});
 };
 
-// Returns a specifc room for display, to retun the room Obj use getRoomObject
+// Returns a specific room for display, to return the room Obj use getRoomObject
 Room.prototype.getRoom = function(s, fn) {
 	var room = this,
 	displayRoom = function(rooms, fn) {
@@ -79,9 +79,9 @@ Room.prototype.getRoom = function(s, fn) {
 								}
 							
 								s.emit('msg', {
-									msg: '<h2 class="room-title">' + rooms[i].title + '</h2>' + 
+									msg: '<h2 class="room-title">' + rooms[i].title + '<span class="area">' + s.player.area + '</span></h2>' +
 									'<p class="room-content">' + rooms[i].content + '</p>' + 
-									'<ul>' + roomStr + '</ul>', 
+									'<ul class="room-extras">' + roomStr + '</ul>',
 									styleClass: 'room'
 								});
 
