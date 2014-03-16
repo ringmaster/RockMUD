@@ -159,12 +159,7 @@ Room.prototype.getRoomObject = function(room, fn) {
 }
 
 Room.prototype.getExits = function(room, fn) {
-	var arr = [],
-	i = 0;
-	
-	for (i; i < room.exits.length; i += 1) {
-		arr.push(room.exits[i].cmd);
-	}
+	var arr = Object.keys(room.exits);
 	return fn(arr);
 }
 
@@ -216,15 +211,10 @@ Room.prototype.checkExit = function(s, direction, fn) {
 	var room = this;
 	
 	room.getRoomObject({area: s.player.area, id: s.player.roomid}, function(roomObj) {
-		var i = 0;
-
-		if (roomObj.exits.length > 0) {
-			for (i; i < roomObj.exits.length; i += 1) {
-				if (direction === roomObj.exits[i].cmd) {
-					return fn(true, roomObj.exits[i].vnum);
-				}
-			}
+		if(typeof roomObj.exits[direction] !== undefined) {
+			return fn(true, roomObj.exits[direction]);
 		}
+
 		return fn(false);
 	});
 }

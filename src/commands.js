@@ -798,14 +798,15 @@ Cmd.prototype.restore = function(s) {
 
 				if(player.player.chp != player.player.hp) {
 					healed++;
-					player.player.chp = player.player.hp;
-					player.player.hunger = 0;
-					player.player.thirst = 0;
 					player.emit('msg', {
 						msg: 'You have been fully healed by an admin.',
 						styleClass: 'foe-miss'
 					});
 				}
+				player.player.chp = player.player.hp;
+				player.player.hunger = 0;
+				player.player.thirst = 0;
+				player.player.cmv = player.player.mv;
 			}
 
 			if(healed > 0) {
