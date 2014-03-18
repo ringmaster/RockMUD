@@ -16,8 +16,10 @@
 				"south": 4,
 				"west": 5
 			},
-			"monsters": [],
-			"items": [],
+			"here": [
+				{"id": "f6bfc595-513e-4c6f-9e7a-a23d21cf658a", "type": "item"},
+				{"id": "e3fcb51d-f0b0-4cf5-abd5-322302dfe6dd", "type": "item"}
+			],
 			"flags": [],
 			"onEnter": ""
 		},

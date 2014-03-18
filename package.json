@@ -1,14 +1,15 @@
 {
-  "name": "RockMUD",
-  "subdomain": "moreoutput.rockmud",
-  "scripts": {
-    "start": "server.js"
-  },
-  "dependencies": {
-    "socket.io": ">= 0.9.8"
-  },
-  "version": "0.1.5-52",
-  "engines": {
-    "node": "0.10.x"
-  }
+	"name": "RockMUD",
+	"subdomain": "moreoutput.rockmud",
+	"scripts": {
+		"start": "server.js"
+	},
+	"dependencies": {
+		"socket.io": ">= 0.9.8",
+		"async": ">= 0.2.10"
+	},
+	"version": "0.1.5-52",
+	"engines": {
+		"node": "0.10.x"
+	}
 }

@@ -15,7 +15,8 @@ server = http.createServer(function (req, res) {
 	var mimeTypes = {
 		'html': 'text/html', 'png': 'image/png',
 		'js': 'text/javascript', 'css': 'text/css',
-	'svg': 'image/svg+xml'};
+		'svg': 'image/svg+xml'
+	};
 
 	uri = url.parse(req.url).pathname;
 	uri = uri.replace(/\.+/g, '.').replace(/\/+/g, '/').replace(/[^a-z0-9\-\.\/_]+/g, '');
@@ -65,7 +66,7 @@ module.exports.areas = [];
 module.exports.time = fs.readFile('./data/time.json');
 
 if (!module.exports.time) {
-	module.exports.time = {	
+	module.exports.time = {
 		year: '100',
 		month: 'March',
 		day: 8,
@@ -78,9 +79,9 @@ if (!module.exports.time) {
 }
 
 var Character = require('./src/character').character,
-Cmds = require('./src/commands').cmd,
-Skills = require('./src/skills').skill,
-Ticks = require('./src/ticks');
+	Cmds = require('./src/commands').cmd,
+	Skills = require('./src/skills').skill,
+	Ticks = require('./src/ticks');
 
 require('./src/commandlist');
 

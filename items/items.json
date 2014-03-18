@@ -3,33 +3,30 @@
 		"name": "bread",
 		"short": "a loaf of bread",
 		"long": "A rather stale looking loaf of bread.",
-		"area": "Midgaard",
-		"id": 5,
+		"id": "7201f84e-11ca-4ec3-90a3-fa505e05f47d",
 		"level": 1,
-		"itemType": "food",
 		"weight": 0.5,
-		"flags": [
+		"flags":
 			{
-				"hunger": -5
+				"hunger": -5,
+				"carry": true
 			}
-		]
 	},
 	{
 		"name": "fountain",
 		"short": "water fountain",
 		"long": "This is the legendary Midgaard water fountain.  Truly majestic.",
-		"area": "Midgaard",
-		"id": 6,
+		"id": "f6bfc595-513e-4c6f-9e7a-a23d21cf658a",
 		"level": 1,
-		"itemType": "scenery",
-		"flags": []
+		"flags": {
+			"scenery": true
+		}
 	},
 	{
 		"name": "Short Sword",
 		"short": "a Short Sword",
-		"long": "A sharp looking short sword with a hilt wrapped in leather.",
-		"area": "Midgaard",
-		"id": 1,
+		"long": "A dull-looking short sword with a hilt wrapped in worn leather.",
+		"id": "e3fcb51d-f0b0-4cf5-abd5-322302dfe6dd",
 		"level": 1,
 		"itemType": "weapon",
 		"material": "iron",
@@ -38,38 +35,66 @@
 		"attackType": "slice",
 		"attackElement": "",
 		"weight": 4,
-		"slot": "hands",
-		"equipped": false,
-		"flags": []
+		"flags": {
+			"weapon": true,
+			"slot": "hands",
+			"carry": true
+		}
 	},
 	{
 		"name": "Tattered Buckler",
 		"short": "a Tattered Buckler",
-		"long": "A round buckler that looks like its seen heavy use.",
-		"area": "Midgaard",
-		"id": 2,
+		"long": "A round wooden buckler that looks like it's seen heavy use.",
+		"id": "f0ca717a-2184-4480-b7ca-90337ab67b36",
 		"level": 1,
-		"itemType": "shield",
 		"material": "wood",
 		"ac": 2,
 		"weight": 6,
-		"slot": "hands",
-		"equipped": false,
-		"flags": []
+		"flags": {
+			"armor": 1,
+			"slot": "hands",
+			"carry": true
+		}
 	},
 	{
 		"name": "Leather Helmet",
 		"short": "a Leather Helmet",
-		"long": "",
-		"area": "Midgaard",
-		"id": 3,
+		"long": "This leather helmet is more likely to give you a headache from wear than stave off a heavy blow, but it does offer some minimal protection.",
+		"id": "a6348a8e-ad70-46d4-8995-42862a8f22d3",
 		"level": 1,
-		"itemType": "helmet",
 		"material": "wood",
 		"ac": 1,
 		"weight": 1,
-		"slot": "head",
-		"equipped": false,
-		"flags": []
+		"flags": {
+			"armor": true,
+			"slot": "head",
+			"carry": true
+		}
+	},
+	{
+		"name": "Pot Pie",
+		"short": "A Chicken Pot Pie",
+		"long": "Calling this a pot pie is an insult to pot pies.  This is one piece of chicken with some potatos and carrots wrapped in some questionable crust.",
+		"id": "b0c4cecb-37eb-460e-8b70-eae350df3d2f",
+		"level": 1,
+		"weight": 2,
+		"flags": {
+			"hunger": -7,
+			"carry": 1
+		}
+	},
+	{
+		"name": "Burlap Sack",
+		"short": "A Burlap Sack",
+		"long": "An over-used burlap sack with many tears.",
+		"id": "3c8efcb3-fb55-429a-8188-fccdd8c203c3",
+		"level": 1,
+		"weight": 1,
+		"maxWeight": 40,
+		"contains": [],
+		"flags": {
+			"container": true,
+			"carry": true
+		}
 	}
 ]

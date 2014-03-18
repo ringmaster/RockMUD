@@ -1,9 +1,12 @@
 "use strict";
 
 var fs = require('fs'),
-io = require('../server').io,
-players = require('../server').players,
-areas = require('../server').areas;
+	server = require('../server'),
+	async = require('async'),
+	io = server.io,
+	players = server.players,
+	areas = server.areas,
+	items = require('./items');
 
 var Room = function() {
  
@@ -53,45 +56,50 @@ Room.prototype.getRoom = function(s, fn) {
 
 		for (i; i < rooms.length; i += 1) {
 			if (rooms[i].id === s.player.roomid) {
-				room.getExits(rooms[i], function(exits) {
-					room.getPlayers(s, rooms[i], function(playersInRoom) {
-						room.getItems(rooms[i], {}, function(items) {
-							room.getMonsters(rooms[i], {specific: 'short'}, function(monsters) {
-								if (exits.length > 0) {
-								 	roomStr += '<li class="room-exits">Visible Exits: ' + 
-								 	exits.join(', ') + '</li>';
-								} else {
-									roomStr += '<li class="room-exits">Visible Exits: None!</li>';
-								}
-								
-								if (playersInRoom.length > 0 || monsters.length > 0) {
-									roomStr += '<li>Here:' + playersInRoom.join(', ') +
-									' ' + monsters.join(', ') + '</li>';
-								}
+				(function(roomIndex) {
+					room.getExits(rooms[roomIndex], function (exits) {
+						room.getPlayers(s, rooms[roomIndex], function (playersInRoom) {
+							room.getItems(rooms[roomIndex], {}, function (itemList) {
+								room.getMonsters(rooms[roomIndex], {specific: 'short'}, function (monsters) {
+									if (exits.length > 0) {
+										roomStr += '<li class="room-exits">Visible Exits: ' +
+											exits.join(', ') + '</li>';
+									}
+									else {
+										roomStr += '<li class="room-exits">Visible Exits: None!</li>';
+									}
 
-								visibleItems = items.slice(0)
-									.filter(function(item){
-										return item.itemType != 'scenery';
-									})
-									.map(function(item) { return item.short; });
-								if (visibleItems.length > 0) {
-									roomStr += '<li>Items: ' + visibleItems.join(', ') + '</li>';
-								}
-							
-								s.emit('msg', {
-									msg: '<h2 class="room-title">' + rooms[i].title + '<span class="area">' + s.player.area + '</span></h2>' +
-									'<p class="room-content">' + rooms[i].content + '</p>' + 
-									'<ul class="room-extras">' + roomStr + '</ul>',
-									styleClass: 'room'
+									if (playersInRoom.length > 0 || monsters.length > 0) {
+										roomStr += '<li>Here:' + playersInRoom.join(', ') +
+											' ' + monsters.join(', ') + '</li>';
+									}
+
+									visibleItems = itemList.slice(0)
+										.filter(function (item) {
+											return !items.has(item, 'scenery');
+										})
+										.map(function (item) {
+											return item.short;
+										});
+									if (visibleItems.length > 0) {
+										roomStr += '<li>Items: ' + visibleItems.join(', ') + '</li>';
+									}
+
+									s.emit('msg', {
+										msg: '<h2 class="room-title">' + rooms[roomIndex].title + '<span class="area">' + s.player.area + '</span></h2>' +
+											'<p class="room-content">' + rooms[roomIndex].content + '</p>' +
+											'<ul class="room-extras">' + roomStr + '</ul>',
+										styleClass: 'room'
+									});
+
+									if (typeof fn === 'function') {
+										return fn();
+									}
 								});
-
-								if (typeof fn === 'function') {
-									return fn();
-								}
 							});
 						});
 					});
-				});
+				})(i);
 			}
 		}	
 	};
@@ -180,25 +188,41 @@ Room.prototype.getPlayers = function(s, room, fn) {
 }
 
 Room.prototype.getItems = function(room, optObj, fn) {
-	return this.get(room, 'items', optObj, fn);
+	return this.get(room, 'item', optObj, fn);
 }
 
 Room.prototype.getMonsters = function(room, optObj, fn) {
-	return this.get(room, 'monsters', optObj, fn);
+	return this.get(room, 'monster', optObj, fn);
 }
 
 Room.prototype.get = function(room, thing, optObj, fn) {
-	var arr = room[thing].slice(0);
+	var here = room.here.slice(0)
 
-	if (optObj.specific != undefined) {
-		arr = arr.map(function (element) {
-			return element[optObj.specific];
-		});
+	// Filter items to the type of thing required.
+	here = here.filter(function(element){
+		return element.type == thing;
+	});
+
+	if(here.length > 0) {
+		// Convert the linked id into the object itself
+
+		async.map(here, items.get.bind(items), function (err, here) {
+			// If a specific key from the object is requested, map to it
+			if (optObj.specific != undefined) {
+				here = here.map(function (element) {
+					return element[optObj.specific];
+				});
+			}
+			// If a map was provided, map to it
+			if (optObj.map != undefined) {
+				here = here.map(optObj.map);
+			}
+			return fn(here);
+		})
 	}
-	if (optObj.map != undefined) {
-		arr = arr.map(optObj.map);
+	else {
+		return fn([]);
 	}
-	return fn(arr);
 }
 
 /**
@@ -228,20 +252,35 @@ Room.prototype.checkExit = function(s, direction, fn) {
 Room.prototype.checkMonster = function(s, name, fn) {
 	var room = this;
 
+	return room.checkThing(s, name, 'monster', fn);
+}
+
+/**
+ * Match a name to a thing (item/monster)
+ * @param s
+ * @param name
+ * @param fn
+ */
+Room.prototype.checkThing = function(s, name, thing, fn) {
+	var room = this;
+
 	room.getRoomObject({area: s.player.area, id: s.player.roomid}, function(roomObj) {
 		var msgPatt = new RegExp('\\b' + name, 'i'),
-		i = 0;
-		
-		if (roomObj.monsters.length > 0) {
-			for (i; i < roomObj.monsters.length; i += 1) {
-				if (msgPatt.test(roomObj.monsters[i].name)) {
-					return fn(true, roomObj.monsters[i]);
+			i = 0;
+
+		room.get(roomObj, thing, {}, function(things){
+			if (things.length > 0) {
+				for (i; i < things.length; i++) {
+					if (msgPatt.test(things[i].name)) {
+						return fn(true, things[i]);
+					}
 				}
 			}
-		}
-		return fn(false);
+			return fn(false);
+		})
 	});
 }
+
 
 
 // Remove a monster from a room
@@ -259,23 +298,8 @@ Room.prototype.removeMonster = function(roomQuery, monster, fn) {
 // does a string match an item in the room
 Room.prototype.checkItem = function(s, name, fn) {
 	var room = this;
-	
-	room.getRoomObject({area: s.player.area, id: s.player.roomid}, function(roomObj) {
-		if (roomObj.items.length > 0) {
-			return room.getItems(roomObj, {}, function(items) {
-				var msgPatt = new RegExp('\\b' + name, 'i'),
-				i = 0;
 
-				for (i; i < items.length; i++) {
-					if (msgPatt.test(items[i].name)) {
-						return fn(true, items[i]);
-					}
-				}
-				return fn(false);
-			});
-		}
-		return fn(false);
-	});
+	return room.checkThing(s, name, 'item', fn);
 };
 
 /**
